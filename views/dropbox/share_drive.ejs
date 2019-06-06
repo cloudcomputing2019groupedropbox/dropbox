@@ -1,0 +1,315 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Dropbox ShareDrive</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../vendor/bootstrap/css/style.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="../../css/simple-sidebar.css" rel="stylesheet">
+
+    <link href="../../chat/chat.css" rel="stylesheet">
+    <!--ajax-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="../../chat/socket.io.js"></script>
+</head>
+
+<body>
+    <div class="d-flex" id="wrapper">
+
+        <!-- Sidebar -->
+        <div class="bg-light border-right" id="sidebar-wrapper">
+            <div class="sidebar-heading">Drobox Icon</div>
+            <div class="list-group list-group-flush">
+                <a class="list-group-item list-group-item-action bg-light">Dashboard</a>
+                <a href="/user" class="list-group-item list-group-item-action bg-light">Profile</a>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle list-group-item list-group-item-action bg-light" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        공유 드라이브
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="teamName1">teamName1</a>
+                        <a class="dropdown-item" href="teamName2">teamName2</a>
+                    </div>
+                </li>
+                <a href="#" class="list-group-item list-group-item-action bg-light">Status</a>
+            </div>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <button class="btn btn-primary" id="menu-toggle">Menu</button>
+
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="#">Home
+                                <span class="sr-only">(current)</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Link</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Dropdown
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                                <a class="dropdown-item" href="#">Action</a>
+                                <a class="dropdown-item" href="#">Another action</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#">Something else here</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="container-fluid" float="left">
+                <h1 class="mt-4">Dropbox menu</h1>
+                <a href="#" onclick="toggle_visibility('chat_id');">Click here</a>
+                <a href="#" class="openMask">비교창열기버튼</a>
+                <div class="dropdown-divider"></div>
+                <div class="file_chat_div">
+
+                    <div class="file_div" id="file_div_id">
+                        <% for (var i = 1; i < dropData.length; i++) { %>
+                            <div class="fileGroup">
+                                <button class="folderList" id=<%=dropData[i].name %> onClick="fileClick(this.id)">
+                                    <% if(dropData[i].name == 'file15.txt') { %>
+                                        <img src="../../images/txt_icon.png" />
+                                        <div id="maskWord">
+                                        </div>
+                                        <div class="windowWord" id=<%=dropData[i].name %>>
+                                        </div>
+                                        <% } else { %>
+                                            <img src="../../images/folder_icon.png" />
+                                            <% } %>
+                                                <div class="fileName">
+                                                    <%= dropData[i].name %>
+                                                </div>
+                                </button>
+                            </div>
+
+                            <% } %>
+                                <script>
+                                    var userName = "<%= dropData[0].userName %>"
+                                    var userGroup = "<%= dropData[0].userGroup %>"
+                                </script>
+                    </div>
+                    <div class="chat_div" id="chat_id">
+                        <div class="chat_top">
+                            <div class="chat_top_title">
+                                <h2>
+                                    chat
+                                </h2>
+                            </div>
+                            <div class="chat_top_list" id="chat">
+                            </div>
+                        </div>
+                        <div class="chat_bottom">
+                            <form onsubmit="send()">
+                                <div class="chat_bottom_input">
+                                    <input type="text" id="test" placeholder="메시지를 입력해주세요..">
+                                </div>
+                                <div class="chat_bottom_enter">
+                                    <button onClick="send()">전송</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <article>
+            </article>
+        </div>
+        <!-- /#page-content-wrapper -->
+
+    </div>
+
+    <!-- 비교윈도우 띄우기 -->
+    <div id="mask">
+    </div>
+    <div class="window" id="compare">
+    </div>
+
+    <link rel="stylesheet" href="https://cdn.rawgit.com/marcosc90/node-jsdifflib/8838a6401c6933ca3faa1085bc1ec9b8174a6db8/assets/jsdifflib.css" />
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <style>
+        #mask {
+            position: absolute;
+            z-index: 9000;
+            background-color: #000000;
+            display: none;
+            left: 0;
+            top: 0;
+        }
+
+        .window {
+            overflow: scroll;
+            width: 70%;
+            height: 700px;
+            background-color: white;
+            margin: auto;
+            display: none;
+            position: absolute;
+            transform: translateX(-50%);
+            z-index: 10000;
+            left: 50%;
+            top: 10px;
+        }
+        
+        
+        #maskWord {
+            position: absolute;
+            z-index: 9000;
+            background-color: #000000;
+            display: none;
+            left: 0;
+            top: 0;
+        }
+
+        .windowWord {
+            overflow: scroll;
+            width: 70%;
+            height: 700px;
+            background-color: white;
+            margin: auto;
+            display: none;
+            position: absolute;
+            transform: translateX(-50%);
+            z-index: 10000;
+            left: 50%;
+            top: 10px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-latest.js"></script>
+    <script>
+        function buttonRecordFunc() {
+            $.ajax({
+                url: '/dropbox/drive/getCompare',
+                dataType: 'json',
+                type: 'POST',
+                data: {
+                    'date': $('#date').val()
+                },
+                success: function(data) {
+                    document.getElementById('compare').innerHTML = data.data;
+                }
+            });
+            var maskHeight = $(document).height();
+            var maskWidth = $(document).width();
+            $('#mask').css({
+                'width': maskWidth,
+                'height': maskHeight
+            });
+            $('#mask').fadeTo("slow", 0.8);
+            $('.window').fadeTo("slow", 1);
+            $('.window').show();
+        }
+        $(document).ready(function() {
+            $('.openMask').click(function(e) {
+                e.preventDefault();
+                buttonRecordFunc();
+            });
+            $('.window .close').click(function(e) {
+                e.preventDefault();
+                $('#mask, .window').hide();
+            });
+            $('#mask').click(function() {
+                $(this).hide();
+                $('.window').hide();
+            });
+            
+            
+            $('.windowWord').click(function(e) {
+                e.preventDefault();
+                $('#maskWord, .windowWord').hide();
+            });
+            $('#maskWord').click(function() {
+                $(this).hide();
+                $('.windowWord').hide();
+            });
+        });
+    </script>
+
+    <!-- 비교윈도우 띄우기 -->
+
+    <!-- /#wrapper -->
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="../../vendor/jquery/jquery.min.js"></script>
+    <script src="../../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Menu Toggle Script -->
+    <script src="../../chat/chat.js"></script>
+    <script>
+        window.onload = function() {
+            socketConnect(userName, userGroup);
+        }
+        $("#menu-toggle").click(function(e) {
+            e.preventDefault();
+            $("#wrapper").toggleClass("toggled");
+        });
+
+        function toggle_visibility(id) {
+            var e = document.getElementById(id);
+            var box1 = document.getElementById("file_div_id");
+            if (e.style.display == 'block') {
+                box1.style.width = "100%";
+                e.style.display = 'none';
+            } else {
+                box1.style.width = "70%";
+                e.style.display = 'block';
+            }
+        }
+
+        
+        //동시코딩 구현함수================================
+        function fileClick(id) {
+          if(id =='file15.txt'){
+              $.ajax({
+                url: '/dropbox/drive/getCompare',
+                dataType: 'json',
+                type: 'POST',
+                data: {
+                    //파일위치 넘기기
+                    'date': $('#date').val()
+                },
+                success: function(data) {
+                    document.getElementById(id).innerHTML = data.data;
+                }
+            });
+            var maskHeight = $(document).height();
+            var maskWidth = $(document).width();
+            $('#maskWord').css({
+                'width': maskWidth,
+                'height': maskHeight
+            });
+            $('#maskWord').fadeTo("slow", 0.8);
+            $('.windowWord').fadeTo("slow", 1);
+            $('.windowWord').show();
+          }
+            
+        }
+
+    </script>
+
+</body>
+
+</html>

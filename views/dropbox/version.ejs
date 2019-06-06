@@ -1,0 +1,31 @@
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Drive Main Page</title>
+</head>
+<body>
+<li>Drive</li>
+<li><a href="/">Home</a>
+<li><a href="/mypage" >My Page</a></li>
+<li><a href="/drive" >My Drive</a></li>	
+<li><a href="/auth/logout/kakao" >Logout</a></li>
+<br>
+
+Trashcan	
+<!--my trashcan files list-->
+<%for (i=1; i<verData.length; i++) {%>
+	<!--file item-->
+		<%=i+1%> . <br>
+		Name: <%=verData[i].Key%><br>
+		Size: <%=verData[i].Size%> <br>
+	
+	이전 버젼 복원하기 <br>
+	<form method="post" action="/dropbox/drive/version/restore">
+		<input type="hidden" name="path" value="<%=verData[i].Key%>">
+  		<input type="submit" name="submitbtn" value="restore">
+	</form>
+<%}%>
+</body>
+	
+</html>

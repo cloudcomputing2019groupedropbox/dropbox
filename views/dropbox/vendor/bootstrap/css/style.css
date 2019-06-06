@@ -1,0 +1,23 @@
+.fileGroup{
+    width:150px;
+    float: left;
+    margin-right:30px;
+    margin-bottom:30px;
+    
+}
+
+.folderList{
+    background-color:#FFFFFF;
+    border:0;
+    outline:0;
+}
+
+.fileName{
+    width:150px;
+    text-align : 'center';
+}
+
+.file_div{
+    width:100%;
+    float:left;
+}

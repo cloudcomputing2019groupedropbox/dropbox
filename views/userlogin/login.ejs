@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <script src="http://developers.kakao.com/sdk/js/kakao.min.js">
+    </script>
+</head>
+<body>
+<h1>Login</h1>
+<li><a href="/auth/login/kakao" >Login using Kakao</a></li>
+<li><a href="/register" >Register</a></li>
+<li><a href="/" >HOME</a></li>
+
+<form method="post" action="/login">
+    ID:  <input type="text" name="user_id">
+    PW: <input type="text" name="user_pw">
+    <button type="submit">Submit</button>
+</form>
+
+</body>
+</html>

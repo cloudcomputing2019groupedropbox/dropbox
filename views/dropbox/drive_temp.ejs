@@ -1,0 +1,148 @@
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Drive Main Page</title>
+</head>
+<body>
+<li>Drive</li>
+<li><a href="/">Home</a>
+<li><a href="/mypage" >My Page</a></li>
+<li><a href="/auth/logout/kakao" >Logout</a></li>
+<br>
+
+Create Folder<br>	path : <%=path%>
+<form  method="post" action="/dropbox/drive/drive_temp/createfolder">
+	<input type="text" name="foldername">
+	<input type="submit">
+</form>	
+
+Create Group Folder<br>
+<form  method="post" action="/dropbox/drive/drive_temp/createshare">
+	Folder Name:<input type="text" name="foldername">
+	User ID: <input type="text" name="userid">
+	<!--add button 누르면 userid 추가할 수 있게!-->
+	<!-- userid 다 담은 useridArray로 form으로 넘겨주세염!-->
+	<input type="submit">
+</form>		
+Upload file<br>	path : <%=path%>
+<form enctype="multipart/form-data" method="post" action="/dropbox/drive/drive_temp/upload_file">
+	<input type="file" name="upload_file">
+	<input type="submit">
+</form>
+<!--my folder list-->
+<%for (i=1; i<folderlist.length; i++) {%>
+	<form method="get" action="/dropbox/drive/drive_temp/<%=user_id%>/folder>">
+		Name: <%=folderlist.Key%>
+		Size: <%=dropData[i].Size%> <br>
+		<input type="hidden" name="key" value="<%=folderlist[i].Key%>">
+		<input type="submit" value="GO">
+	</form>
+	<br>
+<%}%> 
+	<!--my python files-->
+<%for (i=1; i<pyfiles.length; i++) {%>
+		Name: <%=pyfiles[i].Key%><br>
+		Size: <%=pyfiles[i].Size%> <br>
+	<!--download file-->
+	<form method="post" action="/dropbox/drive/drive_temp/download">
+			<input type="hidden" name="path" value="<%=path%>">
+			<input type="hidden" name="key" value="<%=pyfiles[i].Key%>"> 
+  			<input type="submit" value="download">
+	</form>
+
+	<form method="post" action="/dropbox/drive/drive_temp/deleteobject">
+		<input type="hidden" name="path" value="<%=path%>"><!--change value-->
+		<input type="hidden" name="key" value="<%=pyfiles[i].Key%>"> <!--change value-->
+  		<input type="submit" name="submitbtn" value="delete">
+	</form>
+<%}%>
+		<!--my java files-->
+<%for (i=1; i<javafiles.length; i++) {%>
+		Name: <%=javafiles[i].Key%><br>
+		Size: <%=javafiles[i].Size%> <br>
+	<!--download file-->
+	<form method="post" action="/dropbox/drive/drive_temp/download">
+			<input type="hidden" name="path" value="<%=path%>">
+			<input type="hidden" name="key" value="<%=javafiles[i].Key%>"> 
+  			<input type="submit" value="download">
+	</form>
+
+	<form method="post" action="/dropbox/drive/drive_temp/deleteobject">
+		<input type="hidden" name="path" value="<%=path%>"><!--change value-->
+		<input type="hidden" name="key" value="<%=javafiles[i].Key%>"> <!--change value-->
+  		<input type="submit" name="submitbtn" value="delete">
+	</form>
+	<%}%>
+		<!--my cpp files-->
+<%for (i=0; i<cppfiles.length; i++) {%>
+		Name: <%=cppfiles[i].Key%><br>
+		Size: <%=cppfiles[i].Size%> <br>
+	<!--download file-->
+	<form method="post" action="/dropbox/drive/drive_temp/download">
+			<input type="hidden" name="path" value="<%=path%>">
+			<input type="hidden" name="key" value="<%=cppfiles[i].Key%>"> 
+  			<input type="submit" value="download">
+	</form>
+
+	<form method="post" action="/dropbox/drive/drive_temp/deleteobject">
+		<input type="hidden" name="path" value="<%=path%>"><!--change value-->
+		<input type="hidden" name="key" value="<%=cppfiles[i].Key%>"> <!--change value-->
+  		<input type="submit" name="submitbtn" value="delete">
+	</form>
+	<%}%>
+		<!--my txt files-->
+<%for (i=0; i<txtfiles.length; i++) {%>
+		Name: <%=txtfiles[i].Key%><br>
+		Size: <%=txtfiles[i].Size%> <br>
+	<!--download file-->
+	<form method="post" action="/dropbox/drive/drive_temp/download">
+			<input type="hidden" name="path" value="<%=path%>">
+			<input type="hidden" name="key" value="<%=txtfiles[i].Key%>"> 
+  			<input type="submit" value="download">
+	</form>
+
+	<form method="post" action="/dropbox/drive/drive_temp/deleteobject">
+		<input type="hidden" name="path" value="<%=path%>"><!--change value-->
+		<input type="hidden" name="key" value="<%=txtfiles[i].Key%>"> <!--change value-->
+  		<input type="submit" name="submitbtn" value="delete">
+	</form>
+	<%}%>
+		<!--my js files-->
+<%for (i=0; i<jsfiles.length; i++) {%>
+		Name: <%=jsfiles[i].Key%><br>
+		Size: <%=jsfiles[i].Size%> <br>
+	<!--download file-->
+	<form method="post" action="/dropbox/drive/drive_temp/download">
+			<input type="hidden" name="path" value="<%=path%>">
+			<input type="hidden" name="key" value="<%=jsfiles[i].Key%>"> 
+  			<input type="submit" value="download">
+	</form>
+
+	<form method="post" action="/dropbox/drive/drive_temp/deleteobject">
+		<input type="hidden" name="path" value="<%=path%>"><!--change value-->
+		<input type="hidden" name="key" value="<%=jsfiles[i].Key%>"> <!--change value-->
+  		<input type="submit" name="submitbtn" value="delete">
+	</form>
+	<%}%>
+			<!--other extension files-->
+<%for (i=0; i<others.length; i++) {%>
+		Name: <%=others[i].Key%><br>
+		Size: <%=others[i].Size%> <br>
+	<!--download file-->
+	<form method="post" action="/dropbox/drive/drive_temp/download">
+			<input type="hidden" name="path" value="<%=path%>">
+			<input type="hidden" name="key" value="<%=others[i].Key%>"> 
+  			<input type="submit" value="download">
+	</form>
+
+	<form method="post" action="/dropbox/drive/drive_temp/deleteobject">
+		<input type="hidden" name="path" value="<%=path%>"><!--change value-->
+		<input type="hidden" name="key" value="<%=others[i].Key%>"> <!--change value-->
+  		<input type="submit" name="submitbtn" value="delete">
+	</form>
+	<%}%>
+	
+</body>
+	
+</html>

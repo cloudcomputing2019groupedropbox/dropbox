@@ -1,0 +1,37 @@
+.chat_div{
+    display:none;
+    width:30%;
+    height:100%;
+    background-color:yellow;
+    float:left;
+    overflow:hidden;
+    padding:10px;
+}
+.chat_top{
+    width:95%;
+    height:450px;
+}
+.chat_top_title{
+    height:10%;
+}
+.chat_top_list{
+    height:90%;
+	overflow: auto;
+    overflow-x: hidden;
+    background-color:green;
+}
+.chat_bottom{
+    height:100px;
+    background-color:red; 
+    padding:10px;
+}
+.chat_bottom_input{
+    width:70%;
+    height:80px;
+    float:left;
+}
+.chat_bottom_enter{
+    width:30%;
+    height:80px;
+    float:left;
+}

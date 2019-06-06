@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+    <script src="http://developers.kakao.com/sdk/js/kakao.min.js">
+    </script>
+</head>
+<body>
+<h1>Register</h1>
+<li><a href="/auth/login/kakao" >Login using Kakao</a></li>
+<li><a href="/login" >Login</a></li>
+<li><a href="/register" >Register</a></li>
+<li><a href="/" >HOME</a></li>
+
+<form method="post" action="/register">
+    ID:  <input type="text" name="user_id">
+    PW: <input type="text" name="user_pw">
+    PW again : <input type="text" name="user_pw2">
+    NAME : <input type="text" name="user_name">
+    EMAIL : <input type="text" name="user_email">
+    <button type="submit">Submit</button>
+</form>
+
+</body>
+</html>

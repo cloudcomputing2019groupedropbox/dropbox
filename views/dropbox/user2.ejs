@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Page</title>
+</head>
+<body>
+<li>My Page</li>
+<li><a href="/">Home</a>
+<li><a href="/drive">My Drive</a>
+<li><a href="/auth/logout/kakao" >Logout</a></li>
+<br>
+<h2>My Personal Info</h2>
+<hr>
+<table>
+    <tr>
+        <% for(i=0; i<1; i++){ %>
+            <%if (myinfo[i].user_id != myinfo[i].user_pw){ %>
+            <form method="post" action="/user/update">
+                Name: <%= myinfo[i].user_name %><br>
+                ID :<%= myinfo[i].user_id %><br>
+                <input type="hidden" name="user_id" value="<%= myinfo[i].user_id%>">
+                PW :<input type="text" name="user_pw"><br>
+                Reinsert PW:<input type="text" name="user_pw2" ><br>
+                <%if (myinfo[i].user_email ==null) {%>
+                    <%if(myinfo[i].user_phone==null){%>
+                    EMAIL : <input type="text" name="user_email" value="<%= myinfo[i].user_email %>"><br>
+                    PHONE: <input type="number" name="user_phone" value="<%= myinfo[i].user_phone %>"><br>
+                    <%}else {%>
+                    EMAIL: <input type="text" name="user_email"><br>
+                    PHONE: <input type="number" name="user_phone" value="<%= myinfo[i].user_phone %>"><br>
+                    <%}%>
+                    <%} else {%>
+                        <%if(myinfo[i].user_phone==null){%>
+                        EMAIL: <input type="text" name="user_email" value="<%= myinfo[i].user_email %>"><br>
+                        PHONE: <input type="number" name="user_phone"><br>
+                        <%}else {%>
+                        EMAIL: <input type="text" name="user_email" value="<%= myinfo[i].user_email %>"><br>
+                        PHONE: <input type="number" name="user_phone" value="<%= myinfo[i].user_phone %>"><br>
+                        <%}%>
+                    <%}%>
+                <button type="submit">Submit</button>
+            </form>
+        <%} else {%>
+                <form method="post" action="/user/update_kakao_user">
+                    Name: <%= myinfo[i].user_name %><br>
+                    ID : <%= myinfo[i].user_id %><br>
+                    <input type="hidden" name="user_id" value="<%= myinfo[i].user_id %>">
+                    <%if (myinfo[i].user_email ==null) {%>
+                        <%if(myinfo[i].user_phone==null){%>
+                        EMAIL: <input type="text" name="user_email"><br>
+                        PHONE: <input type="number" name="user_phone"><br>
+                        <%}else {%>
+                        EMAIL: <input type="text" name="user_email"><br>
+                        PHONE: <input type="number" name="user_phone" value="<%= myinfo[i].user_phone %>"><br>
+                        <%}%>
+                    <%} else {%>
+                        <%if(myinfo[i].user_phone==null){%>
+                            EMAIL: <input type="text" name="user_email" value="<%= myinfo[i].user_email %>"><br>
+                            PHONE: <input type="number" name="user_phone"><br>
+                        <%}else {%>
+                            EMAIL: <input type="text" name="user_email" value="<%= myinfo[i].user_email %>"><br>
+                            PHONE: <input type="number" name="user_phone" value="<%= myinfo[i].user_phone %>"><br>
+                        <%}%>
+                    <%}%>
+                    <button type="submit">Submit</button>
+                </form>
+            <%}%>
+        <%}%>
+    </tr>
+</table>
+<br>
+
+
+
+</body>
+</html>

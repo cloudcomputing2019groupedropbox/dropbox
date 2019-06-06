@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Dropbox</title>
+
+    <link rel="stylesheet" href="./assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./assets/css/fontawsom-all.min.css">
+    <link rel="stylesheet" type="text/css" href="./assets/css/style.css" />
+</head>
+
+<body class="h-100">
+    <div class="container-fluid">
+        <div class="container">
+            <div class="row title">
+                <h2>Drop Box</h2>
+            </div>
+            <div class="row no-margin roji">
+                <div class="col-sm-6">
+                    <h3 class="small-title">공유 URL</h3>
+                    <div class="row form-ro">
+                        <input placeholder="http://example public url" class="form-control" type="text">
+                        <button onclick="" class="btn btn-success">Search</button>
+                    </div>
+
+                </div>
+                <div class="col-sm-6">
+                    <h3 class="small-title">User login</h3>
+                    <div class="btndiv">
+                        <button onclick="userlogin()" class="btn btn-success">
+                            <i class="fas fa-lock-open"></i> Click to Login</button>
+                    </div>
+                    <h3 class="small-title">User Registeration</h3>
+                    <div class="btndiv">
+                        <button onclick="signup()" class="btn btn-success">
+                            <i class="fas fa-user-plus"></i> Register Now</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="login" class="modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog tem-doc" role="document">
+                <div class="modal-content temp-model">
+                    <div class="modal-header">
+                        <h5 class="modal-title">User login</h5>
+                        <br>
+                        <p>Dropbox 아이디와 비밀번호를 입력해주세요 </p>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form method="post" action="/login">
+                            <div class="row form-ro">
+                                <input placeholder="Enter Username" class="form-control" type="text" name="user_id">
+                            </div>
+                            <div class="row form-ro">
+                                <input placeholder="Enter Password" class="form-control" type="password" name="user_pw">
+                            </div>
+                            <div class="row form-ro">
+                                <button type="submit" class="btn btn-success">Log In</button>
+                            </div>
+                            <div class="row form-ro">
+                                <button onclick="signup()" class="btn btn-danger">Sign Up</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="modal-footer">
+                        <p>Sign Up with social media</p>
+                        <button type="button" class="">
+                            <a href="/auth/login/kakao"><img width="35px" src="./assets/images/kakao.png"></a>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="signup" class="modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog tem-doc" role="document">
+                <div class="modal-content temp-model">
+                    <div class="modal-header">
+                        <h5 class="modal-title">User login</h5>
+                        <br>
+                        <p>Dropbox 회원가입 </p>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="sub" method="post" onsubmit="return false;" action="/register">
+
+                            <div class="row form-ro">
+                                <input placeholder="Enter User ID" class="form-control" type="text" name="user_id">
+                            </div>
+                            <div class="row form-ro">
+                                <input placeholder="Enter Email Address" class="form-control" type="text" name="user_email">
+                            </div>
+                            <div class="row form-ro">
+                                <input placeholder="Enter Phone Number" class="form-control" type="text" name="user_phone">
+                            </div>
+                            <div class="row form-ro">
+                                <input id="pw" placeholder="Enter Password" class="form-control" type="password" name="user_pw">
+                            </div>
+                            <div class="row form-ro">
+                                <input id="pwck" placeholder="Enter Password Again" class="form-control" type="password">
+                            </div>
+                            <div id="pwsame"></div>
+                            <div class="row form-ro">
+                                <button onclick="checkPW()" class="btn btn-success">Sign Up</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <p>Sign Up with social media</p>
+                        <button type="button" class="">
+                            <img width="35px" src="./assets/images/kakao.png">
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+
+<script src="./assets/js/jquery-3.2.1.min.js"></script>
+<script src="./assets/js/popper.min.js"></script>
+<script src="./assets/js/bootstrap.min.js"></script>
+<script src="./assets/js/script.js"></script>
+
+<script>
+    $(document).ready(function() {
+        //userlogin();
+    })
+
+    function checkPW() {
+        var pw = document.getElementById("pw").value;
+        var pwck = document.getElementById("pwck").value;
+        if (pw != pwck || pw == null) {
+            document.getElementById('pwsame').innerHTML = '비밀번호가 일치하지 않습니다';
+            return;
+        } else {
+            document.getElementById("sub").submit();
+        }
+    }
+
+    function userlogin() {
+        $("#signup").modal('hide');
+        $("#login").modal('show');
+    }
+
+    function signup() {
+        $("#login").modal('hide');
+        $("#signup").modal('show');
+    }
+</script>
+
+</html>
