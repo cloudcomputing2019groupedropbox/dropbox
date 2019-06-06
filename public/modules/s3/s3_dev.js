@@ -970,11 +970,11 @@ var S3 = {
 	// 버전 수 재정렬
 	sortVersion: function(errFiles, bucketName, userId, targeFile, svm, lvm, callback) {
 		if (svm <= lvm) {
-			S3.copyVersionFile(bucketName, userId, sourceFile, targetPath, iter + 1, function(res) {
+			S3.renameVersionFile(bucketName, userId, targetFile, targetPath, svm, function(res) {
 				if (!res) {
 					errFiles.push(sourceFile + '_' + (iter + 1));
 				}
-				S3.sortVersion(bucketName, userId, sourceFile, targetPath, lastVersionNum, callback);
+				S3.sortVersion(errFiles, bucketName, userId, 
 			});
 		} else {
 			if (errFiles.length != 0) {
