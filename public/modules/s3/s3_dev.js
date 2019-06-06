@@ -952,7 +952,15 @@ var S3 = {
 						console.log("Delete Version File Error on Deleting Version File");
 						callback(0);
 					} else {
-						
+						sortVersion([], bucketName, userId, targetFile, versionNum + 1, lvm, function(res, errFiles){
+							if (!res) {
+								console.log("Delete Version File Error on Sorting Version");
+								callback(0);
+							} else {
+								console.log("Delete Version File Success");
+								callback(1);
+							}
+						});
 					}
 				});
 			}
