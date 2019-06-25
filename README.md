@@ -1,4 +1,4 @@
-# KHUBOX (Kyung Hee Univerisity Dropbox)
+# KHUBOX (Kyung Hee University Dropbox)
 Cloud Storage Service for Developers <br>
 
 ## Cloud Computing Project
