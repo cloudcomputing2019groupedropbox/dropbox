@@ -19,3 +19,4 @@ exports.decrypt = function(text){
     detext += decipher.final('utf8');
     return detext;
 };
+

@@ -3,13 +3,27 @@ var request = require('request');
 var async = require('async');
 var router = express.Router(); 
 var cryptoM = require('./../../public/modules/cryptoM.js');
+var fs = require('fs');
+var mkdirp = require('mkdirp');
+
+function mkdownloaddir(userid, callback){
+	var dir="./views/download/"+userid;
+	mkdirp(dir, function (err) {
+    if (err){ 
+		console.log(false);
+		callback(false);
+	}else{ 
+		console.log(dir);
+		callback(true);
+	}
+	});
+}
 
 router.post('/', function(req, res, next) {
     var user_id=req.body.user_id;
     var user_pw=req.body.user_pw;
-
     var sqlquery = "SELECT  * FROM users WHERE user_id = ?";
-        connection.query(sqlquery, user_id,function (err, rows) {
+    connection.query(sqlquery, user_id,function (err, rows) {
             if (err) {
                 console.log("no match");
                 res.render('userlogin/main/main',{
@@ -23,7 +37,15 @@ router.post('/', function(req, res, next) {
                         user_id: rows[0].user_id
                     };*/
 					req.session.user_id=rows[0].user_id;
-                    res.redirect('/dropbox/drive');
+					mkdownloaddir(req.session.user_id, function(result){
+						if(result==true){
+							console.log("mkdirtrue!");
+							var url='/dropbox/drive/'+req.session.user_id;
+                    		res.redirect(url);	
+						}else{
+							res.redirect('back');
+						}
+					});
                 }else{
                     console.log("wrong password!");
                     res.render('userlogin/main/main',{

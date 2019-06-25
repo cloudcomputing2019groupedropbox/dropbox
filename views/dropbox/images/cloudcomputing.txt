@@ -1,0 +1,16 @@
+cryptoM : encrypt, decrypt => url 접근 막기!!!! (상위폴더, 하위폴더 접근하기)
+파일 접근
+.js, .java, .py, .cpp, .c
+
+dropData에 type 변수 만들기 => folder/file => 종류별로
+
+img , file, folder, 
+
+공유파일 수정할때 누가 했는지 보여주기 ==> 안되면 수정된 시간 출력 Bucket에 있는 Last Modified
+
+
+login button 밑에 signup 버튼 routing 문제
+
+파일 보기는 S3 에 있는 downloadfile func 안에 있는 S3.getobject()에서 data.Body
+
+groupfolder에서는 group장이 getfilelist 에서 ownerid

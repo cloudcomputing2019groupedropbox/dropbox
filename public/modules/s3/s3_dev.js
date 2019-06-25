@@ -155,6 +155,126 @@ var S3 = {
 		});
 	},
 	
+	// 폴더 또는 파일 복사
+	copyObjectAdmin: function(bucketName, sourceObject, targetPath, callback) {
+		var objectName = path.basename(sourceObject);
+		if (sourceObject[sourceObject.length - 1] == '/') {	// 오브젝트가 폴더인 경우 오브젝트 이름 끝에 '/' 삽입
+			objectName = objectName + '/';
+		}
+		
+		var copyParams = {
+			Bucket: bucketName,
+			CopySource: bucketName + '/' + sourceObject,
+			Key: targetPath + '/' + objectName
+		};
+		
+		s3.copyObject(copyParams, function(err, data) {
+			if (err) {
+				console.log("Copy Error");
+				callback(0);
+			} if (data) {
+				console.log("Copy Success");
+				callback(1);
+			}
+		});
+	},
+	
+	// 폴더 또는 파일 삭제
+	deleteObjectAdmin: function(bucketName, targetObject, callback) {
+		var deleteParams = {
+			Bucket: bucketName,
+			Key: targetObject
+		};
+		
+		s3.deleteObject(deleteParams, function(err, data) {
+			if (err) {
+				console.log("Delete Error", err);
+				callback(0);
+			} if (data) {
+				console.log("Delete Success");
+				callback(1);
+			}
+		});
+	},
+	
+	// 단일 폴더 또는 파일 이동
+	moveObjectAdmin: function(bucketName, sourceObject, targetPath, callback) {
+		S3.copyObjectAdmin(bucketName, sourceObject, targetPath, function(res) {
+			if (!res) {
+				console.log("Move Error on Copying Object");
+				callback(0);
+			} else {
+				S3.deleteObjectAdmin(bucketName, sourceObject, function(res) {
+					if (!res) {
+						console.log("Move Error on Deleting Object");
+						callback(0);
+					} else {
+						console.log("Move Success");
+						callback(1);
+					}
+				});
+			}
+		});
+	},
+	
+	// 복수 폴더 또는 파일 이동
+	moveObjectsAdmin: function(iter, errObjects, bucketName, sourceObjects, targetPath, callback) {
+		if (iter < sourceObjects.length) {
+			S3.moveObjectAdmin(bucketName, sourceObjects[iter], targetPath, function(res) {
+				if (!res) {
+					errObjects.push(sourceObjects[iter]);
+				}
+				S3.moveObjectsAdmin(iter + 1, errObjects, bucketName, sourceObjects, targetPath, callback);
+			});
+		} else {
+			if (errObjects.length != 0) {
+				console.log("Move Objects Error on Moving Some Objects");
+				callback(0, errObjects);
+			} else {
+				console.log("Move Objects Success");
+				callback(1, errObjects);
+			}
+		}
+	},
+	
+	// 복수 폴더 또는 파일을 각각의 목적 경로에 이동
+	moveEachObjectsAdmin: function(iter, errObjects, bucketName, sourceObjects, targetPaths, callback) {
+		if (iter < sourceObjects.length) {
+			S3.moveObjectAdmin(bucketName, sourceObjects[iter], targetPaths[iter], function(res) {
+				if (!res) {
+					errObjects.push(sourceObjects[iter]);
+				}
+				S3.moveEachObjectsAdmin(iter + 1, errObjects, bucketName, sourceObjects, targetPaths, callback);
+			});
+		} else {
+			if (errObjects.length != 0) {
+				console.log("Move Each Objects Error on Moving Some Objects");
+				callback(0, errObjects);
+			} else {
+				console.log("Move Each Objects Success");
+				callback(1, errObjects);
+			}
+		}
+	},
+	
+	// 폴더 또는 파일 목록 접근
+	getObjectListAdmin: function(bucketName, targetPath, callback) {
+		var bucketParams = {
+			Bucket : bucketName,
+			Prefix: targetPath
+		};
+
+		s3.listObjects(bucketParams, function(err, data) {
+			if (err) {
+				console.log("List Error", err);
+				callback(0, data);
+			} if (data) {
+				console.log("List Success");
+				callback(1, data);
+			}
+		});
+	},
+	
 	// 유저 파일 시스템 초기화
 	userInit: function(bucketName,userId, callback){
 		var params = {
@@ -370,10 +490,30 @@ var S3 = {
 			}
 		});
 	},
+	
+	// 유저의 파일 시스템에서 복수 폴더 생성 (폴더 복사 시 호출)
+	createPaths: function(iter, errPaths, bucketName, userId, targetPaths, callback) {
+		if (iter < targetPaths.length) {
+			S3.createPath(bucketName, userId, targetPaths[iter], function(res) {
+				if (!res) {
+					errPaths.push(targetPaths[iter]);
+				}
+				S3.createPaths(iter + 1, errPaths, bucketName, userId, targetPaths, callback);
+			});
+		} else {
+			if (errPaths.length != 0) {
+				console.log("Create Paths Error on Creating Some Paths");
+				callback(0, errPaths);
+			} else {
+				console.log("Create Paths Success");
+				callback(1, errPaths);
+			}
+		}
+	},
 
 	// 유저의 파일 시스템에서 단일 폴더 삭제 (폴더 내의 모든 파일 및 폴더들을 삭제한다.)
 	deletePath: function(bucketName, userId, targetPath, callback) {
-		S3.getFileList(bucketName, userId, targetPath, function(res, data) {
+		S3.getFileList(bucketName, userId, targetPath + '/', function(res, data) {
 			if (!res) {
 				console.log("Delete Path Error on Fetching File List");
 				callback(0);
@@ -451,13 +591,14 @@ var S3 = {
 
 	// 유저의 파일 시스템에서 단일 파일 복제
 	copyFile: function(bucketName, userId, sourceFile, targetPath, callback) {
+		var targetPath_k;
 		if (targetPath != '') {
-			targetPath = targetPath + '/';
+			targetPath_k = targetPath + '/';
 		}
 		var copyParams = {
 			Bucket: bucketName,
 			CopySource: bucketName + '/drive/' + userId + '/' + sourceFile,
-			Key: 'drive/' + userId + '/' + targetPath + path.basename(sourceFile)
+			Key: 'drive/' + userId + '/' + targetPath_k + path.basename(sourceFile)
 		};
 		S3.isVersionedFile(bucketName, userId, sourceFile, function(res, ans, lvNum) {
 			if (!res) {
@@ -515,6 +656,108 @@ var S3 = {
 			}
 		}
 	},
+	
+	// 유저의 파일 시스템에서 복수 파일을 각각의 목적지로 복제 (copyPath 에서 호출)
+	copyEachFiles: function(iter, errFiles, bucketName, userId, sourceFiles, targetPaths, callback) {
+		if (iter < sourceFiles.length) {
+			S3.copyFile(bucketName, userId, sourceFiles[iter], targetPaths[iter], function(res) {
+				if (!res) {
+					errFiles.push(sourceFiles[iter]);
+				}
+				S3.copyEachFiles(iter + 1, errFiles, bucketName, userId, sourceFiles, targetPaths, callback);
+			});
+		} else {
+			if (errFiles.length != 0) {
+				console.log("Copy Each Files Error on Copying Some Files");
+				callback(0, errFiles);
+			} else {
+				console.log("Copy Each Files Success");
+				callback(1, errFiles);
+			}
+		}
+	},
+	
+	// 유저의 파일 시스템에서 단일 폴더 복사 (copyFile과는 다르게, 파라미터 targetPath를 폴더 이름을 포함하도록 파라미터로 받는다.)
+	copyPath: function(bucketName, userId, sourcePath, targetPath, callback) {
+		S3.getFileList(bucketName, userId, sourcePath + '/', function(res, data) {
+			if (!res) {
+				console.log("Copy Path Error on Fetching File List");
+				callback(0);
+			} else {
+				var object = data.Contents;
+				var fileList = [];
+				var pathList = [];
+				for (var idx = 0; idx < object.length; idx++) {
+					var objectName = object[idx].Key;
+					var p = objectName.split('/');
+					var s = p[0].length + p[1].length + 2;
+					var sourceObject = objectName.substring(s);
+					if (sourceObject.charAt(sourceObject.length - 1) != '/') {
+						fileList.push(sourceObject);	// 파일 리스트에 파일 추가
+					} else { 
+						sourceObject = sourceObject.substring(0, sourceObject.length - 1);
+						var newPath = targetPath + sourceObject.substring(sourcePath.length);
+						pathList.push(newPath);	// 폴더 리스트에 폴더 추가
+					}
+				}
+				S3.createPaths(0, [], bucketName, userId, pathList, function(res, errPaths) {
+					if (!res) {
+						console.log("Copy Path Error on Creating some Paths");
+						callback(0, errPaths);
+					} else {
+						var targetPathList = [];
+						for (var i = 0; i < fileList.length; i++) {
+							var rightPath = fileList[i].substring(sourcePath.length + 1, fileList[i].length - path.basename(fileList[i]).length - 1);
+							if (rightPath != '') {
+								if (rightPath == '/') {
+									rightPath = '';
+								} else {
+									rightPath = '/' + rightPath;
+								}
+							}
+							targetPathList.push(targetPath + rightPath);
+						}
+						// return;
+						S3.copyEachFiles(0, [], bucketName, userId, fileList, targetPathList, function(res, errFiles) {
+							if (!res) {
+								console.log("Copy Path Error on Copying Each Files");
+								callback(0, errFiles);
+							} else {
+								console.log("Copy Path Success");
+								callback(1, errFiles);
+							}
+						});
+					}
+				});
+			}
+		});
+	},
+	
+	// 유저의 파일 시스템에서 복수 폴더 복사
+	copyPaths: function(iter, errPaths, bucketName, userId, sourcePaths, targetPath, callback) {
+		var targetPath_k = '';
+		if (iter < sourcePaths.length) {
+			if (targetPath != '') {
+				targetPath_k = targetPath + '/';
+			}
+			var sp = sourcePaths[iter].split('/');
+			var eachTargetPath = targetPath_k + sp[sp.length - 1];
+			S3.copyPath(bucketName, userId, sourcePaths[iter], eachTargetPath, function(res) {
+				if (!res) {
+					errPaths.push(sourcePaths[iter]);
+				}
+				S3.copyPaths(iter + 1, errPaths, bucketName, userId, sourcePaths, targetPath, callback);
+			});
+		} else {
+			if (errPaths.length != 0) {
+				console.log("Copy Paths Error on Copying Some Paths");
+				callback(0, errPaths);
+			} else {
+				console.log("Copy Paths Success");
+				callback(1, errPaths);
+			}
+		}
+	},
 
 	// 유저의 파일 시스템에서 단일 파일 이동 (복제 및 삭제)
 	moveFile: function(bucketName, userId, sourceFile, targetPath, callback) {
@@ -552,6 +795,52 @@ var S3 = {
 			} else {
 				console.log("Move Files Success");
 				callback(1, errFiles);
+			}
+		}
+	},
+	
+	// 유저의 파일 시스템에서 단일 폴더 이동 (moveFile과는 다르게, 파라미터 targetPath를 폴더 이름을 포함하도록 파라미터로 받는다.)
+	movePath: function(bucketName, userId, sourcePath, targetPath, callback) {
+		S3.copyPath(bucketName, userId, sourcePath, targetPath, function(res, errObjects) {
+			if (!res) {
+				console.log("Move Path Error on Copying Path");
+				callback(0, errObjects);
+			} else {
+				S3.deletePath(bucketName, userId, sourcePath, function(res) {
+					if (!res) {
+						console.log("Move Path Error on Deleting Path");
+						callback(0);
+					} else {
+						console.log("Move Path Success");
+						callback(1);
+					}
+				});
+			}
+		});
+	},
+	
+	// 유저의 파일 시스템에서 복수 폴더 이동
+	movePaths(iter, errPaths, bucketName, userId, sourcePaths, targetPath, callback) {
+		var targetPath_k = '';
+		if (iter < sourcePaths.length) {
+			if (targetPath != '') {
+				targetPath_k = targetPath + '/';
+			}
+			var sp = sourcePaths[iter].split('/');
+			var eachTargetPath = targetPath_k + sp[sp.length - 1];
+			S3.movePath(bucketName, userId, sourcePaths[iter], eachTargetPath, function(res) {
+				if (!res) {
+					errPaths.push(sourcePaths[iter]);
+				}
+				S3.movePaths(iter + 1, errPaths, bucketName, userId, sourcePaths, targetPath, callback);
+			});
+		} else {
+			if (errPaths.length != 0) {
+				console.log("Move Paths Error on Moving Some Paths");
+				callback(0, errPaths);
+			} else {
+				console.log("Move Paths Success");
+				callback(1, errPaths);
 			}
 		}
 	},
@@ -615,6 +904,21 @@ var S3 = {
 						}
 					});
 				}
+			}
+		});
+	},
+	
+	// 유저의 파일 시스템에서 폴더 이름 변경
+	renamePath: function(bucketName, userId, sourcePath, newName, callback) {
+		var sp = sourcePath.split('/');
+		var targetPath = sourcePath.substring(0, sourcePath.length - sp[sp.length - 1].length) + newName;
+		S3.movePath(bucketName, userId, sourcePath, targetPath, function(res, errObjects) {
+			if(!res) {
+				console.log('Rename Path Error on Renaming Path');
+				callback(0, errObjects);
+			} else {
+				console.log('Rename Path Success');
+				callback(1, errObjects);
 			}
 		});
 	},
@@ -704,8 +1008,71 @@ var S3 = {
 		}
 	},
 	
-	// 유저의 휴지통 파일 정보 불러오기 (키 값이 나타내는 경로는 파일 복원 시 돌아갈 경로만을 표시하며, 유저에게 휴지통 내의 파일들은 모두 휴지통 내에서 한 번에 보여야 한다. 파일 이름이 중복되어도 키 값이 다르므로 분류가 가능하고, 유저에게 표시 시에는 같은 이름으로 두 파일 모두 표시한다.(윈도우 휴지통과 같다))
-	getDisposedFileList: function (bucketName, userId, callback) {
+	// 유저의 파일 시스템에서 휴지통으로 단일 폴더 이동
+	disposePath: function(bucketName, userId, sourcePath, callback) {
+		var spHead = 'drive/' + userId + '/';
+		var tpHead = 'dropbox/trashcan/' + userId + '/' + uuid.v4() + '/';
+		S3.getFileList(bucketName, userId, sourcePath + '/', function(res, data) {
+			if (!res) {
+				console.log("Dispose Path Error on Listing Objects");
+				callback(0);
+			} if (data) {
+				var spHead = 'drive/' + userId + '/';
+				var tpHead = 'dropbox/trashcan/' + userId + '/' + uuid.v4();
+
+				var sourceObjects = [];
+				var targetPaths = [];
+				for (var i = 0; i < data.Contents.length; i++) {
+					var sourceObject = data.Contents[i].Key;
+					sourceObjects.push(sourceObject);
+					var baseName = path.basename(sourceObject);
+					var tpTail;
+					if (sourceObject[sourceObject.length - 1] == '/') {
+						tpTail = sourceObject.substring(spHead.length, sourceObject.length - baseName.length - 1);
+					} else {
+						tpTail = sourceObject.substring(spHead.length, sourceObject.length - baseName.length);
+					}
+					if (tpTail != '') {
+						tpTail = '/' + tpTail;
+					}
+					tpTail = tpTail.substring(0, tpTail.length - 1);
+					targetPaths.push(tpHead + tpTail);
+				}
+				S3.moveEachObjectsAdmin(0, [], bucketName, sourceObjects, targetPaths, function(res, errObjects) {
+					if (!res) {
+						console.log("Dispose Path Error on Moving Some Objects");
+						callback(0, errObjects);
+					} else {
+						console.log("Dispose Path Success");
+						callback(1, errObjects);
+					}
+				});
+			}
+		});
+	},
+	
+	// 유저의 파일 시스템에서 휴지통으로 복수 폴더 이동
+	disposePaths: function(iter, errObjects, bucketName, userId, sourcePaths, callback) {
+		if (iter < sourcePaths.length) {
+			S3.disposePath(bucketName, userId, sourcePaths[iter], function(res) {
+				if (!res) {
+					errObjects.push(sourcePaths[iter]);
+				}
+				S3.disposePaths(iter + 1, errObjects, bucketName, userId, sourcePaths, callback);
+			});
+		} else {
+			if (errObjects.length != 0) {
+				console.log("Dispose Paths Error on Disposing Some Paths");
+				callback(0, errObjects);
+			} else {
+				console.log("Dispose Paths Success");
+				callback(1, errObjects);
+			}
+		}
+	},
+	
+	// 유저의 휴지통 폴더 및 파일 정보 불러오기 (키 값이 나타내는 경로는 파일 복원 시 돌아갈 경로만을 표시하며, 유저에게 휴지통 내의 파일들은 모두 휴지통 내에서 한 번에 보여야 한다. 파일 이름이 중복되어도 키 값이 다르므로 분류가 가능하고, 유저에게 표시 시에는 같은 이름으로 두 파일 모두 표시한다.(윈도우 휴지통과 같다))
+	getDisposedObjectList: function (bucketName, userId, callback) {
 		var bucketParams = {
 			Bucket : bucketName,
 			Prefix: 'dropbox/trashcan/' + userId + '/'
@@ -767,6 +1134,69 @@ var S3 = {
 			} else {
 				console.log("Return Disposed Files Success");
 				callback(1, errFiles);
+			}
+		}
+	},
+	
+	// 유저의 휴지통에서 단일 폴더 복원 (targetPath는 전체 경로이다.)
+	// targetPath: dropbox/trashcan/userId/UUID/~
+	returnDisposedPath: function(bucketName, userId, targetPath, callback) {
+		S3.getObjectListAdmin(bucketName, targetPath, function(res, data) {
+			if (!res) {
+				console.log("Return Disposed Path Error on Listing Objects");
+				callback(0);
+			} if (data) {
+				var _uuid = targetPath.split('/')[3];
+				var spHead = 'dropbox/trashcan/' + userId + '/' + _uuid + '/';
+				var tpHead = 'drive/' + userId;
+				
+				var sourceObjects = [];
+				var targetPaths = [];
+				for (var i = 0; i < data.Contents.length; i++) {
+					var sourceObject = data.Contents[i].Key;
+					sourceObjects.push(sourceObject);
+					var baseName = path.basename(sourceObject);
+					var tpTail;
+					if (sourceObject[sourceObject.length - 1] == '/') {
+						tpTail = sourceObject.substring(spHead.length, sourceObject.length - baseName.length - 1);
+					} else {
+						tpTail = sourceObject.substring(spHead.length, sourceObject.length - baseName.length);
+					}
+					if (tpTail != '') {
+						tpTail = '/' + tpTail;
+					}
+					tpTail = tpTail.substring(0, tpTail.length - 1);
+					targetPaths.push(tpHead + tpTail);
+				}
+				S3.moveEachObjectsAdmin(0, [], bucketName, sourceObjects, targetPaths, function(res, errObjects) {
+					if (!res) {
+						console.log("Return Path Error on Moving Some Objects");
+						callback(0, errObjects);
+					} else {
+						console.log("Return Path Success");
+						callback(1, errObjects);
+					}
+				});
+			}
+		});
+	},
+	
+	// 유저의 휴지통에서 복수 폴더 복원 (targetPaths는 전채 경로이다.)
+	returnDisposedPaths: function(iter, errObjects, bucketName, userId, targetPaths, callback) {
+		if (iter < targetPaths.length) {
+			S3.returnDisposedPath(bucketName, userId, targetPaths[iter], function(res) {
+				if (!res) {
+					errObjects.push(targetPaths[iter]);
+				}
+				S3.returnDisposedPaths(iter + 1, errObjects, bucketName, userId, targetPaths, callback);
+			});
+		} else {
+			if (errObjects.length != 0) {
+				console.log("Return Disposed Paths Error on Returning Some Disposed Paths");
+				callback(0, errObjects);
+			} else {
+				console.log("Return Disposed Paths Success");
+				callback(1, errObjects);
 			}
 		}
 	},
@@ -835,6 +1265,63 @@ var S3 = {
 			} else {
 				console.log("Delete Disposed Files Success");
 				callback(1, errFiles);
+			}
+		}
+	},
+	
+	// 유저의 휴지통에서 단일 폴더 삭제 (targetPath는 전체 경로이다.)
+	deleteDisposedPath: function(bucketName, userId, targetPath, callback) {
+		S3.getObjectListAdmin(bucketName, targetPath, function(res, data) {
+			if (!res) {
+				console.log("Delete Disposed Path Error on Listing Objects");
+				callback(0);
+			} if (data) {
+				var fileList = [];
+				var pathList = [];
+				for (var i = 0; i < data.Contents.length; i++) {
+					var targetObject = data.Contents[i].Key;
+					if (targetObject[targetObject.length - 1] == '/') {
+						pathList.push({Key: targetObject});
+					} else {
+						fileList.push(targetObject);
+					}
+				}
+				S3.deleteDisposedFiles(0, [], bucketName, userId, fileList, function(res, errFiles) {
+					if (!res) {
+						console.log("Delete Disposed Path Error on Deleting Some Files");
+						callback(0, errFiles);
+					} else {
+						S3.deleteFilesAdmin(bucketName, pathList, function(res) {
+							if (!res) {
+								console.log("Delete Disposed Path Error on Deleting Some Paths");
+								callback(0);
+							} else {
+								console.log("Delete Disposed Path Success");
+								callback(1);
+							}
+						});
+					}
+				});
+			}
+		});
+	},
+	
+	// 유저의 휴지통에서 복수 폴더 삭제 (targetPaths는 전체 경로이다.)
+	deleteDisposedPaths: function(iter, errObjects, bucketName, userId, targetPaths, callback) {
+		if (iter < targetPaths.length) {
+			S3.deleteDisposedPath(bucketName, userId, targetPaths[iter], function(res) {
+				if (!res) {
+					errObjects.push(targetPaths[iter]);
+				}
+				S3.deleteDisposedPaths(iter + 1, errObjects, bucketName, userId, targetPaths, callback);
+			});
+		} else {
+			if (errObjects.length != 0) {
+				console.log("Delete Disposed Paths Error on Deleting Some Disposed Paths");
+				callback(0, errObjects);
+			} else {
+				console.log("Delete Disposed Paths Success");
+				callback(1, errObjects);
 			}
 		}
 	},
@@ -952,7 +1439,7 @@ var S3 = {
 						console.log("Delete Version File Error on Deleting Version File");
 						callback(0);
 					} else {
-						sortVersion([], bucketName, userId, targetFile, versionNum + 1, lvm, function(res, errFiles){
+						S3.sortFileVersion([], bucketName, userId, targetFile, versionNum + 1, lvm, function(res, errFiles){
 							if (!res) {
 								console.log("Delete Version File Error on Sorting Version");
 								callback(0);
@@ -968,23 +1455,38 @@ var S3 = {
 	},
 	
 	// 버전 수 재정렬
-	sortVersion: function(errFiles, bucketName, userId, targeFile, svm, lvm, callback) {
+	sortFileVersion: function(errFiles, bucketName, userId, targetFile, svm, lvm, callback) {
 		if (svm <= lvm) {
-			S3.renameVersionFile(bucketName, userId, targetFile, targetPath, svm, function(res) {
+			S3.changeFileVersion(bucketName, userId, targetFile, svm, svm - 1, function(res) {
 				if (!res) {
-					errFiles.push(sourceFile + '_' + (iter + 1));
+					errFiles.push(targetFile + '_' + (svm));
 				}
-				S3.sortVersion(errFiles, bucketName, userId, 
+				S3.sortFileVersion(errFiles, bucketName, userId, targetFile, svm + 1, lvm, callback);
 			});
 		} else {
 			if (errFiles.length != 0) {
-				console.log("Copy Version Files Error on Copying Some Version Files");
+				console.log("Sort File Version Error on Sorting Some File Versions");
 				callback(0, errFiles);
 			} else {
-				console.log("Copy Version Files Success");
+				console.log("Sort File Version Success");
 				callback(1, errFiles);
 			}
 		}
+	},
+	
+	// 버전 수 변경
+	changeFileVersion: function(bucketName, userId, sourceFile, versionNum, newVersionNum, callback) {
+		var fullSourcePath = 'dropbox/version/' + userId + '/' + sourceFile + '_' + versionNum;
+		var newName = path.basename(sourceFile) + '_' + newVersionNum;
+		S3.renameFileAdmin(bucketName, fullSourcePath, newName,  function(res) {
+			if (!res) {
+				console.log("Change File Version Error on Renameing File");
+				callback(0);
+			} else {
+				console.log("Change File Version Success");
+				callback(1);
+			}
+		});
 	},
 	
 	// 모든 버전 파일 삭제
@@ -1006,8 +1508,11 @@ var S3 = {
 	
 	// 버전 파일 복사
 	copyVersionFile: function(bucketName, userId, sourceFile, targetPath, versionNum, callback) {
+		if (targetPath != '') {
+			targetPath = '/' + targetPath;
+		}
 		var fullSourcePath = 'dropbox/version/' + userId + '/' + sourceFile + '_' + versionNum;
-		var fullTargetPath = 'dropbox/version/' + userId + '/' + targetPath;
+		var fullTargetPath = 'dropbox/version/' + userId + targetPath;
 		S3.copyFileAdmin(bucketName, fullSourcePath, fullTargetPath,  function(res) {
 			if (!res) {
 				console.log("Copy Version File Error on Copying File");
@@ -1039,6 +1544,7 @@ var S3 = {
 		}
 	},
 	
+	// 버전 파일 이름 변경
 	renameVersionFile: function(bucketName, userId, sourceFile, newName, versionNum, callback) {
 		var fullSourcePath = 'dropbox/version/' + userId + '/' + sourceFile + '_' + versionNum;
 		S3.renameFileAdmin(bucketName, fullSourcePath, newName + '_' + versionNum,  function(res) {
@@ -1052,6 +1558,7 @@ var S3 = {
 		});
 	},
 	
+	// 모든 버전 파일 이름 변경
 	renameAllVersionFile: function(iter, errFiles, bucketName, userId, sourceFile, newName, lastVersionNum, callback) {
 		if (iter < lastVersionNum) {
 			S3.renameVersionFile(bucketName, userId, sourceFile, newName, iter + 1, function(res) {
@@ -1069,7 +1576,26 @@ var S3 = {
 				callback(1, errFiles);
 			}
 		}
-	}
+	},
+	
+	downloadFile2: function(bucketName, userId, sourceFile, callback) {
+		var downParams = {
+			Bucket: bucketName,
+			Key: 'drive/' + userId + '/' + sourceFile
+		};
+		// var file = fs.createWriteStream(DOWNLOAD_DIR + '/' + path.basename(sourceFile));
+		// s3.getObject(downParams).createReadStream().pipe(file);
+		s3.getObject(downParams, function(err, data) {
+			if (err) {
+				console.log("Download File Error", err);
+				callback(0);
+			} if (data) {
+				console.log("Download File Success");
+			//	fs.writeFileSync(DOWNLOAD_DIR + '/' + path.basename(sourceFile), data.Body.toString());
+				callback(1, data.Body);
+			}
+		});
+	},
 };
 
 module.exports = S3;
@@ -1085,10 +1611,9 @@ module.exports = S3;
 // S3.moveFile(TEST_BUCKET_NAME, TEST_USER_NAME, 'test_file.txt', 'new_folder', function(result){console.log(result);});
 // S3.disposeFile(TEST_BUCKET_NAME, TEST_USER_NAME, 'test_dir/test_file.txt', function(result){console.log(result);});
 // S3.deletePath(TEST_BUCKET_NAME, TEST_USER_NAME, 'test_dir', function(result){console.log(result);});
-// S3.createPath(TEST_BUCKET_NAME, TEST_USER_NAME, 'test_dir', function(result){console.log(result);});
 // S3.downloadFile(TEST_BUCKET_NAME, TEST_USER_NAME, 'trashcan/test_file.txt', function(result, data){console.log(result);});
-// S3.getDisposedFileList(TEST_BUCKET_NAME, TEST_USER_NAME, function(result, data){console.log(result, data);});
-// S3.getDisposedFileList(TEST_BUCKET_NAME, TEST_USER_NAME, function(result, data) {
+// S3.getDisposedObjectList(TEST_BUCKET_NAME, TEST_USER_NAME, function(result, data){console.log(result, data);});
+// S3.getDisposedObjectList(TEST_BUCKET_NAME, TEST_USER_NAME, function(result, data) {
 // 	if(data) {
 // 		var targetDisposedFile = data.Contents[0].Key;
 // 		S3.returnDisposedFile(TEST_BUCKET_NAME, TEST_USER_NAME, targetDisposedFile, function(result){console.log(result);});
@@ -1101,11 +1626,10 @@ module.exports = S3;
 // S3.deleteAllVersionFile(TEST_BUCKET_NAME, TEST_USER_NAME, 'test_dir/test_file.txt', 3, function(res){console.log(res);});
 // S3.uploadFiles(0, [], TEST_BUCKET_NAME, TEST_USER_NAME, ['m_test_f1.txt', 'm_test_f2.txt'], 'test_dir', function(result, errFiles){console.log(result, errFiles);});
 // S3.copyFiles(0, [], TEST_BUCKET_NAME, TEST_USER_NAME, ['test_dir/m_test_f1.txt', 'test_dir/m_test_f2.txt'], 'new_dir', function(res, errFiles){console.log(res, errFiles);});
-// S3.createPath(TEST_BUCKET_NAME, TEST_USER_NAME, 'glorious_dir', function(res){console.log(res);});
 // S3.moveFiles(0, [], TEST_BUCKET_NAME, TEST_USER_NAME, ['test_dir/m_test_f1.txt', 'test_dir/m_test_f2.txt'], 'glorious_dir', function(res, errFiles){console.log(res, errFiles);});
 // S3.downloadFiles(0, [], TEST_BUCKET_NAME, TEST_USER_NAME, ['glorious_dir/m_test_f1.txt', 'glorious_dir/m_test_f2.txt'], function(res, errFiles){console.log(res, errFiles);});
 // S3.disposeFiles(0, [], TEST_BUCKET_NAME, TEST_USER_NAME, ['glorious_dir/m_test_f1.txt', 'glorious_dir/m_test_f2.txt'], function(res, errFiles){console.log(res, errFiles);});
-// S3.getDisposedFileList(TEST_BUCKET_NAME, TEST_USER_NAME, function(result, data) {
+// S3.getDisposedObjectList(TEST_BUCKET_NAME, TEST_USER_NAME, function(result, data) {
 // 	if(data) {
 // 		var targetDisposedFiles = [];
 		// for(var i = 0; i < data.Contents.length; i++) {
@@ -1114,7 +1638,7 @@ module.exports = S3;
 // 		S3.returnDisposedFiles(0, [], TEST_BUCKET_NAME, TEST_USER_NAME, targetDisposedFiles, function(result, errFiles){console.log(result, errFiles);});
 // 	}
 // });
-// S3.getDisposedFileList(TEST_BUCKET_NAME, TEST_USER_NAME, function(result, data) {
+// S3.getDisposedObjectList(TEST_BUCKET_NAME, TEST_USER_NAME, function(result, data) {
 // 	if(data) {
 // 		var targetDisposedFiles = [];
 // 		for(var i = 0; i < data.Contents.length; i++) {
@@ -1125,3 +1649,19 @@ module.exports = S3;
 // });
 // S3.deletePaths(0, [], TEST_BUCKET_NAME, TEST_USER_NAME, ['dir_1', 'dir_2', 'dir_3'], function(res, errPaths){console.log(res, errPaths);});
 // S3.renameFile(TEST_BUCKET_NAME, TEST_USER_NAME, 'test_dir/test_file.txt', 'toast_file.txt', function(res){console.log(res);});
+// S3.deleteVersionFile(TEST_BUCKET_NAME, TEST_USER_NAME, TEST_SOURCE_FILE, 2, function(result){console.log(result);});
+// S3.copyPath(TEST_BUCKET_NAME, TEST_USER_NAME, 'test_dir', 'pop_dir/test_dir', function(result, errObjects){console.log(result, errObjects);});
+// S3.copyPaths(0, [], TEST_BUCKET_NAME, TEST_USER_NAME, ['new_dir', 'pop_dir', 'test_dir'], 'brand_new_dir', function(result, errObjects){console.log(result, errObjects);});
+// S3.movePath(TEST_BUCKET_NAME, TEST_USER_NAME, 'new_dir', 'glorious_dir/new_dir', function(res, errObjects){console.log(res, errObjects);});
+// S3.movePaths(0, [], TEST_BUCKET_NAME, TEST_USER_NAME, ['glorious_dir/new_dir', 'test_dir/empty_dir'], '', function(res, errObjects){console.log(res, errObjects);});
+// S3.renamePath(TEST_BUCKET_NAME, TEST_USER_NAME, 'john_dir', 'steve_dir', function(res, errObjects){console.log(res, errObjects);});
+// S3.disposePath(TEST_BUCKET_NAME, TEST_USER_NAME, 'must_disposed_dir', function(res, errObjects) {console.log(res, errObjects);});
+// S3.disposePaths(0, [], TEST_BUCKET_NAME, TEST_USER_NAME, ['twin_dir_1', 'twin_dir_2'], function(res, errObjects) {console.log(res, errObjects);});
+// S3.returnDisposedPath(TEST_BUCKET_NAME, TEST_USER_NAME, 'dropbox/trashcan/test1/b163e360-3008-4d2d-ba16-7e5fc7f2e82b/must_disposed_dir/', function(res, errObjects){console.log(res, errObjects);});
+// S3.returnDisposedPaths(0, [], TEST_BUCKET_NAME, TEST_USER_NAME, ['dropbox/trashcan/test1/cde298de-6645-4159-813f-979ffbf20162/twin_dir_1/', 'dropbox/trashcan/test1/17b17b9d-2353-45c8-9abf-4b10f6309354/twin_dir_2/'], function(res, errObjects){console.log(res, errObjects);});
+//S3.deleteDisposedPath(TEST_BUCKET_NAME, TEST_USER_NAME, 'dropbox/trashcan/test1/84a2b2f7-7141-4acc-ab7c-ea28cad63494/john', function(res, errObjects){console.log(res, errObjects);});
+//S3.deleteDisposedPaths(0, [], TEST_BUCKET_NAME, TEST_USER_NAME, ['dropbox/trashcan/test1/d71d243d-c000-4cb8-ab5e-2925a3861842/joyland/david', 'dropbox/trashcan/test1/51e59c97-de33-4bde-b09a-de4f4511004b/johnny'], function(res, errObjects){console.log(res, errObjects);});
+S3.downloadFile2(TEST_BUCKET_NAME, 'ganghun', 'image_file.jpg', function(res, data) {
+	console.log(res);
+	fs.writeFileSync('download/image_file.jpg', data);
+});

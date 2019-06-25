@@ -1,0 +1,40 @@
+router.post('/getCompare', function (req, res, next) {
+	console.log("getCompare!");
+	ownload file succeed");
+			var downloaddir='./views/download/'+targetpath+"_"+name[1];
+			fs.writeFileSync(downloaddir, data);
+		}
+	});
+	
+	S3.downloadFile2(S3.TEST_BUCKET_NAME, req.body.leader, targetpath, function(result, data){
+		if(result==1){
+			console.log("download file succeed");
+			var downloaddir='./views/download'+targetpath;
+			fs.writeFileSync(downloaddir, data);
+		}
+	});
+	readfile(targetpath, name,function(result, file1,file2){
+		if(result==true){
+    		var output = diff(file1, file2, { baseTextName: "test", newTextName: "new" });
+    		res.send({data:output});
+		}else{
+			throw err;
+		}
+	});
+function downloadshowfile(dpath, callback){
+	S3.downloadFile2(S3.TEST_BUCKET_NAME, req.session.user_id, dpath, function(result, data){ 
+		if(result==1){
+			console.log("download file succeed");
+			var dir='./views/download/'+req.session.user_id+'/'+dpath;
+			console.log(dir);
+			try{
+				fs.writeFileSync(dir, data);
+			}catch(err){
+				callback(false);
+			}finally{
+				callback(true);	
+			}
+		}
+	});
+}
+

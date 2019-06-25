@@ -1,8 +1,7 @@
 var socket;
 
-
 function socketConnect(userName, userGroup) {
-    socket = io.connect('https://dropbox-krycf-debug.run.goorm.io');
+    socket = io.connect('http://18.212.168.222:9000');
 
     /* 접속 되었을 때 실행 */
     socket.on('connect', function () {
@@ -56,11 +55,11 @@ function socketConnect(userName, userGroup) {
             buttonCompare.appendChild(recordCompare);
             buttonRecord.addEventListener('click', buttonRecordFunc);
             buttonCompare.addEventListener('click', buttonCompareFunc);
-            chat.appendChild(buttonRecord);
-            chat.appendChild(buttonCompare);
+            message.appendChild(buttonRecord);
+            message.appendChild(buttonCompare);
         }
 
-        chat.scrollTop=chat.scrollHeight;
+        chat.scrollTop = chat.scrollHeight;
     });
 }
 
@@ -83,10 +82,56 @@ function send() {
     // 서버로 message 이벤트 전달 + 데이터와 함께
     socket.emit('message', { type: 'message', message: message, userGroup: userGroup });
 }
+
 //function buttonRecordFunc() {
 //    alert("레코드 버튼");
 //}
-function buttonCompareFunc() {
-    alert("컴페어 버튼");
-}
 
+
+
+
+/*동시 코딩*/
+
+var socket_word;
+
+function socketWordConnect(userName, userGroup, filePath) {
+    var name = userName;
+    var group = userGroup;
+    var path = filePath;
+    socket_word = io.connect('http://18.212.168.222:9000');
+
+    /* 접속 되었을 때 실행 */
+    socket_word.on('connect', function () {
+        socket_word.emit('joinRoom', { userName: name, userGroup: group, filePath: path });
+    });
+
+    //받는부분
+    socket_word.on('changeWord', function (data) {
+        getCaretCoordinates(data.element, data.selectionEnd, data.length);
+    });
+
+    //보내는 부분
+    var elementUp = document.querySelector('#socketUp');
+    ['keyup', 'click', 'scroll'].forEach(function (event) {
+        elementUp.addEventListener(event, update);
+    });
+    function update() {
+        var data = {
+            userName: name,
+            userGroup: group,
+            filePath: path,
+            element: elementUp.value,
+            selectionEnd: elementUp.selectionEnd,
+            length: elementUp.value.length
+        };
+        socket_word.emit('changeSubmit', data);
+    }
+
+    //받고 실행하는 함수
+    getCaretCoordinates = function (element1, position, endPosition) {
+        var mirrorDiv = document.getElementById('socketUp');
+        mirrorDiv.value = element1.substring(0, position);
+        mirrorDiv.value += element1.substring(position, endPosition);
+    };
+
+}

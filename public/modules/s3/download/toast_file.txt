@@ -1,0 +1,2 @@
+THIS IS A TEST FILE.
+REFERENCED AT public/modules/s3/s3.js

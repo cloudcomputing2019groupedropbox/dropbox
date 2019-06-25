@@ -1,108 +1,120 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
 
     <title>Dropbox MyDrive</title>
-	
+
     <!-- Bootstrap core CSS -->
     <link href="dropbox/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="dropbox/vendor/bootstrap/css/style.css" rel="stylesheet">
     <!-- Custom styles for this template -->
     <link href="dropbox/css/simple-sidebar.css" rel="stylesheet">
 
+    <link href="dropbox/chat/chat.css" rel="stylesheet">
+    <!--ajax-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	
 </head>
-
 <body>
-	<a href ="/dropbox/drive/drive_temp">drive_temp</a>
-
-    <div class="d-flex" id="wrapper">
-
+	<div class="d-flex" id="wrapper">
         <!-- Sidebar -->
-        <div class="bg-light border-right" id="sidebar-wrapper">
-            <div class="sidebar-heading">Drobox Icon</div>
-            <div class="list-group list-group-flush">
-                <a class="list-group-item list-group-item-action bg-light">Dashboard</a>
-                <a href="/user" class="list-group-item list-group-item-action bg-light">Profile</a>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle list-group-item list-group-item-action bg-light" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Dropdown
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="#">Action</a>
-                        <a class="dropdown-item" href="#">Another action</a>
-                    </div>
-                </li>
-                <a href="#" class="list-group-item list-group-item-action bg-light">Status</a>
-            </div>
-        </div>
+        <% include ./sideBar %>
         <!-- /#sidebar-wrapper -->
+		<div id="page-content-wrapper">
+            <% include ./headBar %>
+			<h1 class="mt-4">My Personal Infomation</h1>
+			<div class="dropdown-divider"></div>
+			<form>
+	  			<div class="form-group row">
+					<label for="staticEmail" class="col-sm-2 col-form-label">Name</label>
+					<div class="col-sm-10">
+		  				<input type="text" readonly class="form-control-plaintext" id="staticEmail" value="email@example.com">
+    				</div>
+  				</div>
+			</form>
+  		</div>
+	</div>
+	
+	<hr>
+<table>
+    <tr>
+        <% for(i=0; i<1; i++){ %>
+            <%if (myinfo[i].user_id != myinfo[i].user_pw){ %>
+            <form method="post" action="/user/update">
+                Name: <%= myinfo[i].user_name %><br>
+                ID :<%= myinfo[i].user_id %><br>
+                <input type="hidden" name="user_id" value="<%= myinfo[i].user_id%>">
+                PW :<input type="text" name="user_pw"><br>
+                Reinsert PW:<input type="text" name="user_pw2" ><br>
+                <%if (myinfo[i].user_email ==null) {%>
+                    <%if(myinfo[i].user_phone==null){%>
+                    EMAIL : <input type="text" name="user_email" value="<%= myinfo[i].user_email %>"><br>
+                    PHONE: <input type="number" name="user_phone" value="<%= myinfo[i].user_phone %>"><br>
+                    <%}else {%>
+                    EMAIL: <input type="text" name="user_email"><br>
+                    PHONE: <input type="number" name="user_phone" value="<%= myinfo[i].user_phone %>"><br>
+                    <%}%>
+                    <%} else {%>
+                        <%if(myinfo[i].user_phone==null){%>
+                        EMAIL: <input type="text" name="user_email" value="<%= myinfo[i].user_email %>"><br>
+                        PHONE: <input type="number" name="user_phone"><br>
+                        <%}else {%>
+                        EMAIL: <input type="text" name="user_email" value="<%= myinfo[i].user_email %>"><br>
+                        PHONE: <input type="number" name="user_phone" value="<%= myinfo[i].user_phone %>"><br>
+                        <%}%>
+                    <%}%>
+                <button type="submit">Submit</button>
+            </form>
+        <%} else {%>
+                <form method="post" action="/user/update_kakao_user">
+                    Name: <%= myinfo[i].user_name %><br>
+                    ID : <%= myinfo[i].user_id %><br>
+                    <input type="hidden" name="user_id" value="<%= myinfo[i].user_id %>">
+                    <%if (myinfo[i].user_email ==null) {%>
+                        <%if(myinfo[i].user_phone==null){%>
+                        EMAIL: <input type="text" name="user_email"><br>
+                        PHONE: <input type="number" name="user_phone"><br>
+                        <%}else {%>
+                        EMAIL: <input type="text" name="user_email"><br>
+                        PHONE: <input type="number" name="user_phone" value="<%= myinfo[i].user_phone %>"><br>
+                        <%}%>
+                    <%} else {%>
+                        <%if(myinfo[i].user_phone==null){%>
+                            EMAIL: <input type="text" name="user_email" value="<%= myinfo[i].user_email %>"><br>
+                            PHONE: <input type="number" name="user_phone"><br>
+                        <%}else {%>
+                            EMAIL: <input type="text" name="user_email" value="<%= myinfo[i].user_email %>"><br>
+                            PHONE: <input type="number" name="user_phone" value="<%= myinfo[i].user_phone %>"><br>
+                        <%}%>
+                    <%}%>
+                    <button type="submit">Submit</button>
+                </form>
+            <%}%>
+        <%}%>
+    </tr>
+</table>
+<br>
 
-        <!-- Page Content -->
-        <div id="page-content-wrapper">
-
-            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
-                <button class="btn btn-primary" id="menu-toggle">Menu</button>
-
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
-                        <li class="nav-item active">
-                            <a class="nav-link" href="#">Home
-                                <span class="sr-only">(current)</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Link</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Dropdown
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" href="#">Action</a>
-                                <a class="dropdown-item" href="#">Another action</a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="#">Something else here</a>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-
-            <div class="container-fluid">
-                <h1 class="mt-4">Dropbox menu</h1>
-                <div class="dropdown-divider"></div>
-                <p>main divtest</p>
-                
-            </div>
-			<article>
-			</article>
-        </div>
-        <!-- /#page-content-wrapper -->
-
-    </div>
-    <!-- /#wrapper -->
-
-    <!-- Bootstrap core JavaScript -->
-    <script src="dropbox/vendor/jquery/jquery.min.js"></script>
-    <script src="dropbox/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Menu Toggle Script -->
-    <script>
-        $(document).ready(function() {
-        });
-        $("#menu-toggle").click(function(e) {
+	
+	<script>
+		$("#menu-toggle").click(function (e) {
             e.preventDefault();
             $("#wrapper").toggleClass("toggled");
         });
-    </script>
+		
+		function toggle_visibility(id) {
+            var e = document.getElementById(id);
+            var box1 = document.getElementById("file_div_id");
+            if (e.style.display == 'block') {
+                box1.style.width = "100%";
+                e.style.display = 'none';
+            } else {
+                box1.style.width = "70%";
+                e.style.display = 'block';
+            }
+        }
+	</script>
 
 </body>
-
 </html>

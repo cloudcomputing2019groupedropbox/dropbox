@@ -1,31 +1,167 @@
-
+<!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Drive Main Page</title>
-</head>
-<body>
-<li>Drive</li>
-<li><a href="/">Home</a>
-<li><a href="/mypage" >My Page</a></li>
-<li><a href="/drive" >My Drive</a></li>	
-<li><a href="/auth/logout/kakao" >Logout</a></li>
-<br>
 
-Trashcan	
-<!--my trashcan files list-->
-<%for (i=1; i<delData.length; i++) {%>
-	<!--file item-->
-		<%=i+1%> . <br>
-		Name: <%=delData[i].Key%><br>
-		Size: <%=delData[i].Size%> <br>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Dropbox MyDrive</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/dropbox/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/dropbox/vendor/bootstrap/css/style.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="/dropbox/css/simple-sidebar.css" rel="stylesheet">
+    <link rel="stylesheet" href="/dropbox/vendor/bootstrap/css/fontawsom-all.min.css">
+    <link href="/dropbox/chat/chat.css" rel="stylesheet">
+    <!--ajax-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <!-- <script src="/dropbox/vendor/jquery/jquery.min.js"></script> -->
+    <script src="/dropbox/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+	<script src="/dropbox/vendor/jquery/jquery.js"></script>
+    <script src="/dropbox/vendor/js/dropbox.js"></script>
+    <script src="/dropbox/vendor/contextmenu/jquery.contextMenu.js"></script>
+    <script src="/dropbox/vendor/contextmenu/jquery.ui.position.js"></script>
+    <link rel="stylesheet" href="/dropbox/vendor/contextmenu/jquery.contextMenu.css">
+
+
+    <style>
+        body {
+            font-family: mouse-500;
+        }
+
+        .sidebar-heading {
+            font-weight: 900;
+            font-size: xx-large;
+            text-align: center;
+            letter-spacing: 7px;
+        }
+
+        .pathH2 {
+            text-align: center;
+            margin-top: 14px;
+        }
+
+        .titleDiv {
+            padding-top: 25px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+
+        <div class="bg-light border-right" id="sidebar-wrapper">
+            <div class="sidebar-heading" id='sidebar-title'>KHU BOX</div>
+            <div class="list-group list-group-flush">
+                <a class="list-group-item list-group-item-action bg-light" href="/dropbox/drive/<%=user_id%>">My
+                    Drive</a>
+                <a class="list-group-item list-group-item-action bg-light" href="/dropbox/drive/trashcan">휴지통</a>
+                <!--<a href="#" class="list-group-item list-group-item-action bg-light">Status</a>-->
+            </div>
+        </div>
+
+        <!-- /#sidebar-wrapper -->
+        <div id="page-content-wrapper">
+            <% include ./headBar %>
+            <div class="container-fluid titleDiv" float="left">
+                <h1 class="pathH2">My Trashcan</h1>
+            </div>
+            <div class="dropdown-divider"></div>
+			<div class="file_chat_div">
+                <div class="file_div" id="file_div_id">
+				<%if(delData.length!=1){%>
+                    <%for (i=1; i<delData.length; i++) {%>
+					<div class="fileGroup">
+						
+                    <!--my trashcan files list-->
+
+                    <!--file item-->
+                    <!-- <div style="margin:20px;"> -->
+					<button class="folderList" id="<%=delData[i].Key%>">
+						<img src="/dropbox/images/default_icon.png" />
+                        <div class="fileName">
+                        <%=delData[i].Key%>
+                        </div>
+					</button>
+					</div>
+						
+                        <!-- <form method="post" action="/dropbox/drive/trashcan/restore" style="float:left">
+                            <input type="hidden" name="path" value="<=delData[i].Key%>">복원하기
+                            <input type="submit" name="submitbtn" value="restore">
+                        </form>
+
+
+                        <form method="post" action="/dropbox/drive/trashcan/delete" style="float:left">
+                            <input type="hidden" name="path" value="<=delData[i].Key%>">완전삭제하기
+                            <input type="submit" name="submitbtn" value="delete">
+                        </form> -->
 	
-	복원하기 <br>
-	<form method="post" action="/dropbox/drive/trashcan/restore">
-		<input type="hidden" name="path" value="<%=dropData[i].Key%>">
-  		<input type="submit" name="submitbtn" value="restore">
-	</form>
-<%}%>
+            <!-- </div> -->
+            <%}%>
+
+                        <%}else{%>
+            
+            <h3> 휴지통이 비어있습니다.</h3>
+            <%}%>
+        </div>
+    </div>
+	
+	<script>
+	$(function() {
+            $.contextMenu({
+                selector: '.folderList',
+                // callback: function (key, options) {
+                //     var m = "clicked: " + key;
+                //     window.console && console.log(m) || alert(m);
+                // },
+                items: {
+                    "restore": {
+                        name: "복원하기",
+                        icon: "add",
+                        callback: function() {
+                            // alert($(this).attr('id'));
+                            // var filename = $(this).attr('value');
+                            var params = `filename=${$(this).attr('value')}&path=${$(this).attr('id')}`;
+                            console.log(params);
+                            jQuery.ajax({
+                                url: '/dropbox/drive/trashcan/restore',
+                                data: params,
+                                type: 'POST',
+                                success: function(data) {
+                                    console.log('success');
+                                    var locate = window.location.href;
+                                    window.location.href = locate;
+                                }
+                            });
+                        }
+                    },
+                    "delete": {
+                        name: "영구삭제",
+                        icon: "delete",
+                        callback: function() {
+                            var params = `filename=${$(this).attr('value')}&path=${$(this).attr('id')}`;
+                            console.log(params);
+                            jQuery.ajax({
+                                url: '/dropbox/drive/trashcan/delete',
+                                data: params,
+                                type: 'POST',
+                                success: function(data) {
+                                    console.log('success');
+                                    var locate = window.location.href;
+                                    window.location.href = locate;
+                                }
+                            });
+                        }
+                    }
+                }
+            })
+        })
+	
+	</script>
 </body>
-	
+
 </html>

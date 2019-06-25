@@ -1,0 +1,33 @@
+<div class="bg-light border-right" id="sidebar-wrapper">
+    <div class="sidebar-heading" id='sidebar-title'>KHU BOX</div>
+    <div class="list-group list-group-flush">
+        <a class="list-group-item list-group-item-action bg-light" href="/dropbox/drive/<%=user_id%>">My Drive</a>
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle list-group-item list-group-item-action bg-light" href="#"
+                id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Share Drive
+            </a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                <!-- <a class="dropdown-item" href="/dropbox/drive/share/teamName1">teamName1</a>
+                <a class="dropdown-item" href="/dropbox/drive/share/teamName2">teamName2</a>-->
+
+                <%for (i=0; i<groupfolders.length; i++) {%>
+				<a class='dropdown-item' href="/dropbox/drive/share/<%=groupfolders[i].group_index%>/<%=groupfolders[i].group_name%>"><%=groupfolders[i].group_name%> </a>
+               <!-- <form method="post" action="/dropbox/drive/drive_temp/group/gopath">
+                    <button class="dropdown-item" type="submit" style=" font-size: 20px;">
+                    <=groupfolders[i].group_name%><br>
+                    
+                    <input type="hidden" name="path" value="<=path%>">
+                    <input type="hidden" name="group_index" value="<=groupfolders[i].group_index%>">
+                    <input type="hidden" name="group_name" value="<=groupfolders[i].group_name%>">
+                    </button>-->
+                    <div class="dropdown-divider"></div>
+                <!--</form>-->
+                
+                <%}%>
+            </div>
+        </li>
+                <a class="list-group-item list-group-item-action bg-light" href="/dropbox/drive/trashcan">휴지통</a>
+        <!--<a href="#" class="list-group-item list-group-item-action bg-light">Status</a>-->
+    </div>
+</div>

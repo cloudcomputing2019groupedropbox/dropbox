@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Dropbox MyDrive</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/dropbox/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/dropbox/vendor/bootstrap/css/style.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="/dropbox/css/simple-sidebar.css" rel="stylesheet">
+
+    <link href="/dropbox/chat/chat.css" rel="stylesheet">
+    <!--ajax-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <script src="/dropbox/vendor/jquery/jquery.min.js"></script>
+    <script src="/dropbox/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+</head>
+
+<body style="background-color: gray; width:100%">
+    <div class="d-flex" id="wrapper" style="width:100%;">
+        <!-- Sidebar -->
+
+        <!-- /#sidebar-wrapper -->
+        <div id="page-content-wrapper" style="background-color:gray;width:100%;height:100%;">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <button class="btn btn-primary" >save</button>
+
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="/dropbox/drive">Home
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <%if(showfile.length!=0){%>
+                <div id="container" style="width:1000px;height:800px; margin:auto;"></div>
+                <script src="/dropbox/chat/vs/loader.js"></script>
+                <script>
+                    var file = "<%=showfile%>";
+                    file = file.replace(/,/gi, '\n');
+                    console.log("test");
+                    var type = "<%=type%>";
+                    var lan = "javascript";
+                    if (type == "js") {
+                        lan = "javascript"
+                    } else if (type == "py") {
+                        lan = "python"
+                    }
+                    require.config({
+                        paths: {
+                            'vs': '/dropbox/chat/vs'
+                        }
+                    });
+                    require(['vs/editor/editor.main'], function() {
+                        var editor = monaco.editor.create(document.getElementById('container'), {
+                            value: file,
+                            language: lan
+                        });
+                    });
+
+                    function save() {
+                        // how do I get the value/code inside the editor?
+                        var value = "";
+                        saveValueSomewhere(value);
+                    }
+                </script>
+
+                <%}else if (showfile.length==0 && image==''){%>
+                    Empty
+                    <%}%>
+
+                        <%if(image!=''){%>
+
+                            <%var source="/"+image%>
+                                <div style="width:30%; margin:auto;">
+                                    <img style="width:100%;height:auto;margin:auto;" src="<%=source%>"></img>
+                                </div>
+                                <%}%>
+        </div>
+    </div>
+</body>
+
+</html>

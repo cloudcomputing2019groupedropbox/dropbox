@@ -1,0 +1,127 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Dropbox MyDrive</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="vendor/bootstrap/css/style.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="css/simple-sidebar.css" rel="stylesheet">
+
+    <link href="chat/chat.css" rel="stylesheet">
+    <!--ajax-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <div class="d-flex" id="wrapper">
+
+        <!-- Sidebar -->
+        <% include ./sideBar %>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <% include ./headBar %>
+            <div class="container-fluid" float="left">
+                <h1 class="mt-4">Dropbox menu</h1>
+                <a href="/dropbox/drive/drive_temp/<%=user_id%>">drive_temp</a>
+                <a href="/dropbox/drive/trashcan">trashcan</a>
+                <div class="dropdown-divider"></div>
+                <div class="file_chat_div">
+
+                    <div class="file_div" id="file_div_id">
+                        <% for (var i = 1; i < dropData.length; i++) { %>
+                        <div class="fileGroup">
+                            <button class="folderList" id=<%=dropData[i].name %> fileType=<%=dropData[i].type %> ondblclick="fileClick(this.id)">
+                                <% if(dropData[i].name == 'file15.txt') { %>
+                                <img src="images/txt_icon.png" />
+                                <% } else { %>
+                                <img src="images/folder_icon.png" />
+                                <% } %>
+                                <div class="fileName">
+                                    <%= dropData[i].name %>
+                                </div>
+                            </button>
+                        </div>
+                        <% } %>
+                        
+                        <script>
+                            var userName = "<%= dropData[0].userName %>"
+                            var userGroup = "<%= dropData[0].userGroup %>"
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Menu Toggle Script -->
+    <script>
+        var socket;
+        window.onload = function () {
+            //var test1 = <%= dropData[1].name %>;
+            //alert(test);
+            //var e = document.getElementById('chat_id');
+            //e.style.display == 'none'
+        }
+        $("#menu-toggle").click(function (e) {
+            e.preventDefault();
+            $("#wrapper").toggleClass("toggled");
+        });
+
+        function toggle_visibility(id) {
+            var e = document.getElementById(id);
+            var box1 = document.getElementById("file_div_id");
+            if (e.style.display == 'block') {
+                box1.style.width = "100%";
+                e.style.display = 'none';
+            } else {
+                box1.style.width = "70%";
+                e.style.display = 'block';
+            }
+        }
+
+
+        function fileClick(id) {
+            var doc = document.getElementById(id);
+            var type = doc.getAttribute("fileType");
+
+
+
+
+
+
+            // $.ajax({
+            //     url: '/dropbox/drive/getCompare',
+            //     dataType: 'json',
+            //     type: 'POST',
+            //     data: {
+            //         'date': $('#date').val()
+            //     },
+            //     success: function (data) {
+            //         document.getElementById('compare').innerHTML = data.data;
+            //     }
+            // });
+            console.log(type);
+            console.log(id);
+        }
+
+
+    </script>
+
+	
+</body>
+
+</html>

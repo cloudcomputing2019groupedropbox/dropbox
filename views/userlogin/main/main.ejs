@@ -9,30 +9,47 @@
     <link rel="stylesheet" href="./assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="./assets/css/fontawsom-all.min.css">
     <link rel="stylesheet" type="text/css" href="./assets/css/style.css" />
+	
+	<style>
+		#title { font-size: 40px; font-weight: 900; font-family : mouse-500;}
+		/* .container {text-align : center; margin-left : auto; margin-right : auto;} */
+		#start_text { height: 100px; line-height: 100px; text-align: center; font-size : 40px; background: #6bba90; color: white; font-family : mouse-500, Arial, Helvetica; }
+		/* #start {  padding-right: 15px; padding-left: 15px; margin-right: auto; margin-left: auto;} */
+		#form {padding-top : 9em;}
+		.small-title {text-align : center;}
+		#title_img {margin-top: 10px;}
+    </style>
 </head>
 
 <body class="h-100">
     <div class="container-fluid">
-        <div class="container">
-            <div class="row title">
-                <h2>Drop Box</h2>
-            </div>
+		<!-- Image and text -->
+		<nav class="navbar navbar-light bg-light">
+  			<a class="navbar-brand" id=title href="#" >
+    		<img src="/dropbox/images/cloud-server.png" id=title_img width="40" height="40" class="d-inline-block align-top" alt="">
+				KHU-BOX
+  			</a>
+		</nav>
+		<div class="container-fluid" id="start">
+            <div id="start_text">GETTING STARTED!</div>
+        </div>
+        <div class="container-fluid">
+<!-- 
             <div class="row no-margin roji">
-                <div class="col-sm-6">
+                <!-- <div class="col-sm-6">
                     <h3 class="small-title">공유 URL</h3>
                     <div class="row form-ro">
                         <input placeholder="http://example public url" class="form-control" type="text">
                         <button onclick="" class="btn btn-success">Search</button>
-                    </div>
-
-                </div>
-                <div class="col-sm-6">
-                    <h3 class="small-title">User login</h3>
+                    </div> -->
+			
+                <div class="container-fluid" id="form" >
+                    <h3 class="small-title">LOGIN</h3>
                     <div class="btndiv">
                         <button onclick="userlogin()" class="btn btn-success">
                             <i class="fas fa-lock-open"></i> Click to Login</button>
                     </div>
-                    <h3 class="small-title">User Registeration</h3>
+                    <h3 class="small-title">REGISTRATION</h3>
                     <div class="btndiv">
                         <button onclick="signup()" class="btn btn-success">
                             <i class="fas fa-user-plus"></i> Register Now</button>

@@ -1,0 +1,108 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<link rel="stylesheet" href="https://cdn.rawgit.com/marcosc90/node-jsdifflib/8838a6401c6933ca3faa1085bc1ec9b8174a6db8/assets/jsdifflib.css" />
+	<meta name="viewport" content="width=device-width" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<style>
+
+	#mask {
+	  position:absolute;
+	  z-index:9000;
+	  background-color:#000000;
+	  display:none;
+	  left:0;
+	  top:0;
+	}
+	.window{
+overflow:scroll;
+	width:70%;
+height:700px;
+	background-color:white;
+	margin:auto;
+	  display: none;
+	//  position:absolute;
+  position:relative;	
+ // left:100px;
+	 // top:100px;
+	  z-index:10000;
+	}
+	</style>
+	<script src="https://code.jquery.com/jquery-latest.js"></script>
+	<script>
+	function wrapWindowByMask(){
+		//ȭ���� ���̿� �ʺ� ���Ѵ�.
+		var maskHeight = $(document).height();
+		var maskWidth = $(document).width();
+
+		//����ũ�� ���̿� �ʺ� ȭ�� ������ ����� ��ü ȭ���� ä���.
+		$('#mask').css({'width':maskWidth,'height':maskHeight});
+
+		//�ִϸ��̼� ȿ�� - �ϴ� 1�ʵ��� ��İ� �ƴٰ� 80% ���������� ����.
+		//$('#mask').fadeIn(1000);
+		$('#mask').fadeTo("slow",0.6);
+
+		//������ ���� �� ����.
+		$('.window').show();
+	}
+
+	$(document).ready(function(){
+		//���� �� ����
+		$('.openMask').click(function(e){
+			e.preventDefault();
+			wrapWindowByMask();
+		});
+
+		//�ݱ� ��ư�� ������ ��
+		$('.window .close').click(function (e) {
+		    //��ũ �⺻������ �۵����� �ʵ��� �Ѵ�.
+		    e.preventDefault();
+		    $('#mask, .window').hide();
+		});
+
+		//���� ���� ������ ��
+		$('#mask').click(function () {
+		    $(this).hide();
+		    $('.window').hide();
+		});
+	});
+	</script>
+</head>
+<body>
+	<div id="mask"></div>
+	<div class="window">
+
+
+	<table class="diff"><thead><tr><th></th><th class="texttitle">test</th><th></th><th class="texttitle">new</th></tr></thead><tbody><tr><th>1</th><td class="equal">.chat_div{</td><th>1</
+th><td class="equal">.chat_div{</td></tr><tr><th>2</th><td class="equal">    display:none;</td><th>2</th><td class="equal">    display:none;</td></tr><tr><th>3</th><td class="equal">
+  width:30%;</td><th>3</th><td class="equal">    width:30%;</td></tr><tr><th>4</th><td class="equal">    height:100%;</td><th>4</th><td class="equal">    height:100%;</td></tr><tr><th>
+5</th><td class="equal">    background-color:yellow;</td><th>5</th><td class="equal">    background-color:yellow;</td></tr><tr><th>6</th><td class="equal">    float:left;</td><th>6</th
+><td class="equal">    float:left;</td></tr><tr><th>7</th><td class="delete">    overflow:hidden;</td><th></th><td class="empty"></td></tr><tr><th>8</th><td class="equal">    padding:1
+0px;</td><th>7</th><td class="equal">    padding:10px;</td></tr><tr><th>9</th><td class="equal">}</td><th>8</th><td class="equal">}</td></tr><tr><th>10</th><td class="equal">.chat_top{
+</td><th>9</th><td class="equal">.chat_top{</td></tr><tr><th>11</th><td class="equal">    width:100%;</td><th>10</th><td class="equal">    width:100%;</td></tr><tr><th>12</th><td class
+="replace">    height:450px;</td><th>11</th><td class="replace">    height:4350px;</td></tr><tr><th>13</th><td class="equal">}</td><th>12</th><td class="equal">}</td></tr><tr><th>14</t
+h><td class="equal">.chat_top_list{</td><th>13</th><td class="equal">.chat_top_list{</td></tr><tr><th>15</th><td class="equal">    height:100%;</td><th>14</th><td class="equal">    hei
+ght:100%;</td></tr><tr><th>16</th><td class="equal">    background-color:green;</td><th>15</th><td class="equal">    background-color:green;</td></tr><tr><th>17</th><td class="equal">}
+</td><th>16</th><td class="equal">}</td></tr><tr><th>18</th><td class="equal">.chat_bottom{</td><th>17</th><td class="equal">.chat_bottom{</td></tr><tr><th>19</th><td class="replace">
+   width:100%;</td><th>18</th><td class="replace">    width:100%;;</td></tr><tr><th>20</th><td class="replace">    height:100px;</td><th>19</th><td class="replace">    height:120px;</t
+d></tr><tr><th>21</th><td class="replace">    background-color:red; </td><th>20</th><td class="replace">    background--color:red; </td></tr><tr><th>22</th><td class="equal">    paddin
+g:10px;</td><th>21</th><td class="equal">    padding:10px;</td></tr><tr><th>23</th><td class="equal">}</td><th>22</th><td class="equal">}</td></tr><tr><th>24</th><td class="equal">.cha
+t_bottom_input{</td><th>23</th><td class="equal">.chat_bottom_input{</td></tr><tr><th>25</th><td class="equal">    width:70%;</td><th>24</th><td class="equal">    width:70%;</td></tr><
+tr><th>26</th><td class="equal">    height:80px;</td><th>25</th><td class="equal">    height:80px;</td></tr><tr><th>27</th><td class="delete">    float:left;</td><th></th><td class="em
+pty"></td></tr><tr><th>28</th><td class="equal">}</td><th>26</th><td class="equal">}</td></tr><tr><th>29</th><td class="equal">.chat_bottom_enter{</td><th>27</th><td class="equal">.cha
+t_bottom_enter{</td></tr><tr><th>30</th><td class="delete">    width:30%;</td><th></th><td class="empty"></td></tr><tr><th>31</th><td class="equal">    height:80px;</td><th>28</th><td
+class="equal">    height:80px;</td></tr><tr><th>32</th><td class="equal">    float:left;</td><th>29</th><td class="equal">    float:left;</td></tr><tr><th>33</th><td class="equal">}</t
+d><th>30</th><td class="equal">}</td></tr></tbody></table>
+
+
+	
+
+
+
+
+
+	</div>
+	<a href="#" class="openMask">���� �� ����</a>
+</body>
+</html>

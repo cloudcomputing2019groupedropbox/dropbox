@@ -1,0 +1,73 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Dropbox Editor</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/dropbox/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/dropbox/vendor/bootstrap/css/style.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="/dropbox/css/simple-sidebar.css" rel="stylesheet">
+
+    <link href="/dropbox/chat/chat.css" rel="stylesheet">
+    <!--ajax-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/dropbox/chat/socket.io.js"></script>
+</head>
+
+<body>
+    <div class="d-flex" id="wrapper">
+        <div id="page-content-wrapper">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <button class="btn btn-primary" id="menu-toggle">Save</button>
+
+                <button class="navbar-toggler" type="button" data-toggle="collapse"
+                    data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="/dropbox/drive">Home
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/user">Profile</a>
+                        </li>
+
+                    </ul>
+                </div>
+            </nav>
+            <div class="word_body_div" id="scrollDiv">
+                <div class="word_text_div" -ms-overflow-style: none;>
+                    <textarea id="socketUp" class="word_text_area"><%= editData.fileStr %></textarea>
+                </div>
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
+    </div>
+
+
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="/dropbox/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Menu Toggle Script -->
+    <script src="/dropbox/chat/chat.js"></script>
+    <script>
+        var userName = "<%= editData.userName %>"
+        var userGroup = "<%= editData.userGroup %>"
+        var filePath = "<%= editData.filePath %>"
+        window.onload = function () {
+            socketWordConnect(userName, userGroup, filePath);
+        }
+    </script>
+
+</body>
+
+</html>

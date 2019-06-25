@@ -12,17 +12,18 @@
 <li><a href="/auth/logout/kakao" >Logout</a></li>
 <br>
 
-Trashcan	
+Version LIst
 <!--my trashcan files list-->
-<%for (i=1; i<verData.length; i++) {%>
+<%for (i=0; i<verData.length; i++) {%>
 	<!--file item-->
 		<%=i+1%> . <br>
 		Name: <%=verData[i].Key%><br>
 		Size: <%=verData[i].Size%> <br>
-	
-	이전 버젼 복원하기 <br>
-	<form method="post" action="/dropbox/drive/version/restore">
-		<input type="hidden" name="path" value="<%=verData[i].Key%>">
+		Leader : <%=leader%> <br>
+	 <br>
+	<form method="post" action="/dropbox/drive/getCompare">
+		<input type="hidden" name="old" value="<%=verData[i].Key%>">
+			<input type="hidden" name="leader" value="<%=leader%>">
   		<input type="submit" name="submitbtn" value="restore">
 	</form>
 <%}%>

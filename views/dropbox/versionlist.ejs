@@ -1,0 +1,27 @@
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Drive Main Page</title>
+</head>
+<body>
+<li>Drive</li>
+<li><a href="/">Home</a>
+<li><a href="/mypage" >My Page</a></li>
+<li><a href="/drive" >My Drive</a></li>	
+<li><a href="/auth/logout/kakao" >Logout</a></li>
+<br>
+
+Versionfilelist:	
+<!--my trashcan files list-->
+<%for (i=0; i<vfiles.length; i++) {%>
+	<!--file item-->
+		<%=i+1%> . <%=vfiles[i][0]%><br>
+	<form method="post" action="/dropbox/drive/getHistory">
+		<input type="hidden" name="fileinfo" value="<%=vfiles[i]%>">
+  		<input type="submit" name="submitbtn" value="Get History">
+	</form>
+<%}%>
+</body>
+	
+</html>

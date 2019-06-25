@@ -1,148 +1,570 @@
-
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Drive Main Page</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Dropbox MyDrive</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/dropbox/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/dropbox/vendor/bootstrap/css/style.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="/dropbox/css/simple-sidebar.css" rel="stylesheet">
+
+    <link href="/dropbox/chat/chat.css" rel="stylesheet">
+    <!--ajax-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+
+    <script src="/dropbox/vendor/jquery/jquery.min.js"></script>
+    <script src="/dropbox/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            bsCustomFileInput.init();
+
+            $(".custom-file").on("change", function () {
+                var fileName = $(this).val().split("\\").pop();
+                $(this).siblings(".custom-file").addClass("selected").html(fileName);
+            });
+        });
+
+        function multipart() { //AWS key값 입력해야됨
+            var TEST_BUCKET_NAME = 'khu.2019.cse335.e';
+            var TEST_USER_NAME = 'test1';
+            var TEST_SOURCE_FILE = 'test_file.txt';
+            var DOWNLOAD_DIR = 'download';
+
+            var s3 = new AWS.S3({
+                apiVersion: '2006-03-01'
+            });
+            var path = require('path');
+
+            var fs = require('fs'),
+                zlib = require('zlib');
+            var body = fs.createReadStream('upload_file').pipe(zlib.createGzip());
+            // Upload the stream
+            var file = req.body.file;
+            console.log("file : " + file);
+            var buffer = fs.readFileSync(file.path);
+            console.log("buffer : " + buffer);
+            var multipartParams = {
+                Bucket: TEST_BUCKET_NAME,
+                Key: req.session.user_id + '/' + filename,
+                Body: fs.createReadStream(file.path)
+            };
+            console.log("mp :  " + multipartParams);
+            multipartUpload(multipartParams, buffer);
+        };
+
+        function multipartUpload(multipartParams, buffer) {
+            var startTime = new Date();
+            var partNum = 0;
+            var partSize = 1024 * 1024 * 5; // 5mb chunks except last part
+            var numPartsLeft = Math.ceil(buffer.length / partSize);
+            var maxUploadTries = 3;
+            var multipartMap = {
+                Parts: []
+            };
+
+            s3.createMultipartUpload(multipartParams, function (err, multipart) {
+                if (err) {
+                    console.error('Error!', err);
+                }
+                console.log('Got upload ID', multipart.UploadId);
+
+                for (var start = 0; start < buffer.length; start += partSize) {
+                    partNum++;
+                    var end = Math.min(start + partSize, buffer.length);
+                    var partParams = {
+                        Body: buffer.slice(start, end),
+                        Bucket: multipartParams.Bucket,
+                        Key: multipartParams.Key,
+                        PartNumber: String(partNum),
+                        UploadId: multipart.UploadId
+                    };
+                    console.log('Uploading part: #', partParams.PartNumber, ', Start:', start);
+                    uploadPart(s3, multipart, partParams);
+                }
+            });
+
+            function uploadPart(s3, multipart, partParams, tryNum) {
+                var tryNum = tryNum || 1;
+                s3.uploadPart(partParams, function (multiErr, mData) {
+                    console.log('started');
+                    if (multiErr) {
+                        console.log('Upload part error:', multiErr);
+
+                        if (tryNum < maxUploadTries) {
+                            console.log('Retrying upload of part: #', partParams.PartNumber);
+                            S3.uploadPart(s3, multipart, partParams, tryNum + 1);
+                        } else {
+                            console.log('Failed uploading part: #', partParams.PartNumber);
+                        }
+                        // return;
+                    }
+
+                    multipartMap.Parts[this.request.params.PartNumber - 1] = {
+                        ETag: mData.ETag,
+                        PartNumber: Number(this.request.params.PartNumber)
+                    };
+                    console.log('Completed part', this.request.params.PartNumber);
+                    console.log('mData', mData);
+                    if (--numPartsLeft > 0) return; // complete only when all parts uploaded
+
+                    var doneParams = {
+                        Bucket: multipartParams.Bucket,
+                        Key: multipartParams.Key,
+                        MultipartUpload: multipartMap,
+                        UploadId: multipart.UploadId
+                    };
+
+                    console.log('Completing upload...');
+                    completeMultipartUpload(s3, doneParams);
+                })
+            };
+
+            function completeMultipartUpload(s3, doneParams) {
+                s3.completeMultipartUpload(doneParams, function (err, data) {
+                    if (err) return console.error('An error occurred while completing multipart upload');
+                    var delta = (new Date() - startTime) / 1000;
+                    console.log('Completed upload in', delta, 'seconds');
+                    console.log('Final upload data:', data);
+                    return true;
+                });
+
+            };
+    </script>
+
 </head>
+
 <body>
-<li>Drive</li>
-<li><a href="/">Home</a>
-<li><a href="/mypage" >My Page</a></li>
-<li><a href="/auth/logout/kakao" >Logout</a></li>
-<br>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <% include ./sideBar %>
+        <!-- /#sidebar-wrapper -->
+        <div id="page-content-wrapper">
+            <% include ./headBar %>
+            <h1 class="mt-4">My Dropbox</h1>
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    새로 만들기
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" data-toggle="modal" data-target="#createNewFolder">새 폴더</a>
+                    <a class="dropdown-item" data-toggle="modal" data-target="#createNewGroupFolder">그룹 폴더</a>
+                    <a class="dropdown-item" data-toggle="modal" data-target="#uploadFile">파일 업로드</a>
+                </div>
+            </div>
+            <div class="dropdown-divider"></div>
 
-Create Folder<br>	path : <%=path%>
-<form  method="post" action="/dropbox/drive/drive_temp/createfolder">
-	<input type="text" name="foldername">
-	<input type="submit">
-</form>	
+            Upload file<br> path : <%=path%>
+            <form enctype="multipart/form-data" method="post" action="/dropbox/drive/drive_temp/upload_file">
+                <input type="file" name="upload_file">
+                <input type="hidden" name="path" value="<%=path%>">
+                <input type="submit">
+            </form>
 
-Create Group Folder<br>
-<form  method="post" action="/dropbox/drive/drive_temp/createshare">
-	Folder Name:<input type="text" name="foldername">
-	User ID: <input type="text" name="userid">
-	<!--add button 누르면 userid 추가할 수 있게!-->
-	<!-- userid 다 담은 useridArray로 form으로 넘겨주세염!-->
-	<input type="submit">
-</form>		
-Upload file<br>	path : <%=path%>
-<form enctype="multipart/form-data" method="post" action="/dropbox/drive/drive_temp/upload_file">
-	<input type="file" name="upload_file">
-	<input type="submit">
-</form>
-<!--my folder list-->
-<%for (i=1; i<folderlist.length; i++) {%>
-	<form method="get" action="/dropbox/drive/drive_temp/<%=user_id%>/folder>">
-		Name: <%=folderlist.Key%>
-		Size: <%=dropData[i].Size%> <br>
-		<input type="hidden" name="key" value="<%=folderlist[i].Key%>">
-		<input type="submit" value="GO">
-	</form>
-	<br>
-<%}%> 
+            Upload BIG file<br> path : <%=path%>
+
+
+            <form enctype="multipart/form-data" method="post" onsubmit="return multipart();">
+                <!--<form enctype="multipart/form-data" method="post" action ="/dropbox/drive/drive_temp/multiupload_file" onsubmit="multipart()">-->
+                <input type="file" name="upload_file">
+                <input type="hidden" name="path" value="<%=path%>">
+                <input type="submit">
+            </form>
+
+            -------------------------------------------------------------------- <br>
+            Groups
+            <!--groupfolderlist--> <br>
+            <%for (i=0; i<groupfolders.length; i++) {%>
+            <form method="post" action="/dropbox/drive/drive_temp/group/gopath">
+                Name: <%=groupfolders[i].group_name%><br>
+                Leader: <%=groupfolders[i].group_leader%> <br>
+                <input type="hidden" name="path" value="<%=path%>">
+                <input type="hidden" name="foldername" value="<%=groupfolders[i].group_name%>">
+                <input type="submit" value="GO">
+            </form>
+            <br>
+            <%}%> 
+---------------------------------------------------------------------	<br>
+My Folders<!--my folder list-->
+<%for (i=0; i<folderlist.length; i++) {%>
+            <form method="post" action="/dropbox/drive/drive_temp/gopath">
+                <%var key=folderlist[i].Key.split('/')%>
+                Name: <%=key[key.length-2]%><br>
+                Size: <%=folderlist[i].Size%> <br>
+                <input type="hidden" name="path" value="<%=path%>">
+                <input type="hidden" name="foldername" value="<%=key[key.length-2]%>">
+                <input type="submit" value="GO">
+            </form>
+            <br>
+            <%}%> 
 	<!--my python files-->
-<%for (i=1; i<pyfiles.length; i++) {%>
-		Name: <%=pyfiles[i].Key%><br>
-		Size: <%=pyfiles[i].Size%> <br>
-	<!--download file-->
-	<form method="post" action="/dropbox/drive/drive_temp/download">
-			<input type="hidden" name="path" value="<%=path%>">
-			<input type="hidden" name="key" value="<%=pyfiles[i].Key%>"> 
-  			<input type="submit" value="download">
-	</form>
+<%for (i=0; i<pyfiles.length; i++) {%>
+            <%var key=pyfiles[i].Key.split('/')%>
+            Name: <%=key[key.length-1]%><br>
+            Size: <%=pyfiles[i].Size%> <br>
+            <!--download file-->
+            <form method="post" action="/dropbox/drive/drive_temp/download">
+                <input type="hidden" name="path" value="<%=path%>">
+                <input type="hidden" name="filename" value="<%=key[key.length-1]%>">
+                <input type="submit" value="download">
+            </form>
 
-	<form method="post" action="/dropbox/drive/drive_temp/deleteobject">
-		<input type="hidden" name="path" value="<%=path%>"><!--change value-->
-		<input type="hidden" name="key" value="<%=pyfiles[i].Key%>"> <!--change value-->
-  		<input type="submit" name="submitbtn" value="delete">
-	</form>
-<%}%>
+            <form method="post" action="/dropbox/drive/drive_temp/deleteobject">
+                <input type="hidden" name="path" value="<%=path%>">
+                <!--change value-->
+                <input type="hidden" name="filename" value="<%=key[key.length-1]%>">
+                <input type="submit" name="submitbtn" value="delete">
+            </form>
+            <form method="post" action="/dropbox/drive/drive_temp/showfile">
+                <input type="hidden" name="path" value="<%=path%>">
+				<input type="hidden" name="filename" value="<%=key[key.length-1]%>">
+                <input type="submit" value="show">
+            </form>
+            <%}%>
 		<!--my java files-->
-<%for (i=1; i<javafiles.length; i++) {%>
-		Name: <%=javafiles[i].Key%><br>
-		Size: <%=javafiles[i].Size%> <br>
-	<!--download file-->
-	<form method="post" action="/dropbox/drive/drive_temp/download">
-			<input type="hidden" name="path" value="<%=path%>">
-			<input type="hidden" name="key" value="<%=javafiles[i].Key%>"> 
-  			<input type="submit" value="download">
-	</form>
+<%for (i=0; i<javafiles.length; i++) {%>
+            <%var key=javafiles[i].Key.split('/')%>
+            Name: <%=key[key.length-1]%><br>
+            Size: <%=javafiles[i].Size%> <br>
+            <!--download file-->
+            <form method="post" action="/dropbox/drive/drive_temp/download">
+                <input type="hidden" name="path" value="<%=path%>">
+                <input type="hidden" name="filename" value="<%=key[key.length-1]%>">
+                <input type="submit" value="download">
+            </form>
 
-	<form method="post" action="/dropbox/drive/drive_temp/deleteobject">
-		<input type="hidden" name="path" value="<%=path%>"><!--change value-->
-		<input type="hidden" name="key" value="<%=javafiles[i].Key%>"> <!--change value-->
-  		<input type="submit" name="submitbtn" value="delete">
-	</form>
-	<%}%>
+            <form method="post" action="/dropbox/drive/drive_temp/deleteobject">
+                <input type="hidden" name="path" value="<%=path%>">
+                <!--change value-->
+                <input type="hidden" name="filename" value="<%=key[key.length-1]%>">
+                <input type="submit" name="submitbtn" value="delete">
+            </form>
+            <form method="post" action="/dropbox/drive/drive_temp/showfile">
+                <input type="hidden" name="path" value="<%=path%>">
+				<input type="hidden" name="filename" value="<%=key[key.length-1]%>">
+                <input type="submit" value="show">
+            </form>
+            <%}%>
 		<!--my cpp files-->
 <%for (i=0; i<cppfiles.length; i++) {%>
-		Name: <%=cppfiles[i].Key%><br>
-		Size: <%=cppfiles[i].Size%> <br>
-	<!--download file-->
-	<form method="post" action="/dropbox/drive/drive_temp/download">
-			<input type="hidden" name="path" value="<%=path%>">
-			<input type="hidden" name="key" value="<%=cppfiles[i].Key%>"> 
-  			<input type="submit" value="download">
-	</form>
+            <%var key=cppfiles[i].Key.split('/')%>
+            Name: <%=key[key.length-1]%><br>
+            Size: <%=cppfiles[i].Size%> <br>
+            <!--download file-->
+            <form method="post" action="/dropbox/drive/drive_temp/download">
+                <input type="hidden" name="path" value="<%=path%>">
+                <input type="hidden" name="filename" value="<%=key[key.length-1]%>">
+                <input type="submit" value="download">
+            </form>
 
-	<form method="post" action="/dropbox/drive/drive_temp/deleteobject">
-		<input type="hidden" name="path" value="<%=path%>"><!--change value-->
-		<input type="hidden" name="key" value="<%=cppfiles[i].Key%>"> <!--change value-->
-  		<input type="submit" name="submitbtn" value="delete">
-	</form>
-	<%}%>
+            <form method="post" action="/dropbox/drive/drive_temp/deleteobject">
+                <input type="hidden" name="path" value="<%=path%>">
+                <!--change value-->
+                <input type="hidden" name="filename" value="<%=key[key.length-1]%>">
+                <input type="submit" name="submitbtn" value="delete">
+            </form>
+            <form method="post" action="/dropbox/drive/drive_temp/showfile">
+                <input type="hidden" name="path" value="<%=path%>">
+				<input type="hidden" name="filename" value="<%=key[key.length-1]%>">
+                <input type="submit" value="show">
+            </form>
+            <%}%>
 		<!--my txt files-->
 <%for (i=0; i<txtfiles.length; i++) {%>
-		Name: <%=txtfiles[i].Key%><br>
-		Size: <%=txtfiles[i].Size%> <br>
-	<!--download file-->
-	<form method="post" action="/dropbox/drive/drive_temp/download">
-			<input type="hidden" name="path" value="<%=path%>">
-			<input type="hidden" name="key" value="<%=txtfiles[i].Key%>"> 
-  			<input type="submit" value="download">
-	</form>
+            <%var key=txtfiles[i].Key.split('/')%>
+            Name: <%=key[key.length-1]%><br>
+            Size: <%=txtfiles[i].Size%> <br>
+            <!--download file-->
+            <form method="post" action="/dropbox/drive/drive_temp/download">
+                <input type="hidden" name="path" value="<%=path%>">
+                <input type="hidden" name="filename" value="<%=key[key.length-1]%>">
+                <input type="submit" value="download">
+            </form>
 
-	<form method="post" action="/dropbox/drive/drive_temp/deleteobject">
-		<input type="hidden" name="path" value="<%=path%>"><!--change value-->
-		<input type="hidden" name="key" value="<%=txtfiles[i].Key%>"> <!--change value-->
-  		<input type="submit" name="submitbtn" value="delete">
-	</form>
-	<%}%>
+            <form method="post" action="/dropbox/drive/drive_temp/deleteobject">
+                <input type="hidden" name="path" value="<%=path%>">
+                <input type="hidden" name="filename" value="<%=key[key.length-1]%>">
+                <input type="hidden" name="key" value="<%=txtfiles[i].Key%>">
+                <input type="submit" name="submitbtn" value="delete">
+            </form>
+            <form method="post" action="/dropbox/drive/drive_temp/showfile">
+                <input type="hidden" name="path" value="<%=path%>">
+				<input type="hidden" name="filename" value="<%=key[key.length-1]%>">
+                <input type="submit" value="show">
+            </form>
+            <%}%>
 		<!--my js files-->
 <%for (i=0; i<jsfiles.length; i++) {%>
-		Name: <%=jsfiles[i].Key%><br>
-		Size: <%=jsfiles[i].Size%> <br>
-	<!--download file-->
-	<form method="post" action="/dropbox/drive/drive_temp/download">
-			<input type="hidden" name="path" value="<%=path%>">
-			<input type="hidden" name="key" value="<%=jsfiles[i].Key%>"> 
-  			<input type="submit" value="download">
-	</form>
+            <%var key=jsfiles[i].Key.split('/')%>
+            Name: <%=key[key.length-1]%><br>
+            Size: <%=jsfiles[i].Size%> <br>
+            <!--download file-->
+            <form method="post" action="/dropbox/drive/drive_temp/download">
+                <input type="hidden" name="path" value="<%=path%>">
+                <input type="hidden" name="key" value="<%=jsfiles[i].Key%>">
+                <input type="submit" value="download">
+            </form>
 
-	<form method="post" action="/dropbox/drive/drive_temp/deleteobject">
-		<input type="hidden" name="path" value="<%=path%>"><!--change value-->
-		<input type="hidden" name="key" value="<%=jsfiles[i].Key%>"> <!--change value-->
-  		<input type="submit" name="submitbtn" value="delete">
-	</form>
-	<%}%>
+            <form method="post" action="/dropbox/drive/drive_temp/deleteobject">
+                <input type="hidden" name="path" value="<%=path%>">
+                <!--change value-->
+                <input type="hidden" name="filename" value="<%=key[key.length-1]%>">
+                <input type="hidden" name="key" value="<%=jsfiles[i].Key%>">
+                <!--change value-->
+                <input type="submit" name="submitbtn" value="delete">
+            </form>
+           <form method="post" action="/dropbox/drive/drive_temp/showfile">
+                <input type="hidden" name="path" value="<%=path%>">
+				<input type="hidden" name="filename" value="<%=key[key.length-1]%>">
+                <input type="submit" value="show">
+            </form>
+            <%}%>
 			<!--other extension files-->
 <%for (i=0; i<others.length; i++) {%>
-		Name: <%=others[i].Key%><br>
-		Size: <%=others[i].Size%> <br>
-	<!--download file-->
-	<form method="post" action="/dropbox/drive/drive_temp/download">
-			<input type="hidden" name="path" value="<%=path%>">
-			<input type="hidden" name="key" value="<%=others[i].Key%>"> 
-  			<input type="submit" value="download">
-	</form>
+            <%var key=others[i].Key.split('/')%>
+            Name: <%=key[key.length-1]%><br>
+            Size: <%=others[i].Size%> <br>
+            <!--download file-->
+            <form method="post" action="/dropbox/drive/drive_temp/download">
+                <input type="hidden" name="path" value="<%=path%>">
+                <input type="hidden" name="key" value="<%=others[i].Key%>">
+                <input type="submit" value="download">
+            </form>
 
-	<form method="post" action="/dropbox/drive/drive_temp/deleteobject">
-		<input type="hidden" name="path" value="<%=path%>"><!--change value-->
-		<input type="hidden" name="key" value="<%=others[i].Key%>"> <!--change value-->
-  		<input type="submit" name="submitbtn" value="delete">
-	</form>
-	<%}%>
+            <form method="post" action="/dropbox/drive/drive_temp/deleteobject">
+                <input type="hidden" name="path" value="<%=path%>">
+                <!--change value-->
+                <input type="hidden" name="key" value="<%=others[i].Key%>">
+                <input type="hidden" name="filename" value="<%=key[key.length-1]%>">
+                <!--change value-->
+                <input type="submit" name="submitbtn" value="delete">
+            </form>
+            <form method="post" action="/dropbox/drive/drive_temp/showfile">
+                <input type="hidden" name="path" value="<%=path%>">
+				<input type="hidden" name="filename" value="<%=key[key.length-1]%>">
+                <input type="submit" value="show">
+            </form>
+            <%}%>
+			<% for(var i = 0; i < images.length; i++) { %>
+                        <%var key=images[i].Key.split('/')%>
+                        <div class="fileGroup">
+                           
+                                <img src="images/txt_icon.png" />
+                                <div class="fileName">
+                                    <%=key[key.length-1]%>
+                                    <!--name-->
+                                </div>
+                 <form method="post" action="/dropbox/drive/drive_temp/showfile">
+                <input type="hidden" name="path" value="<%=path%>">
+				<input type="hidden" name="filename" value="<%=key[key.length-1]%>">
+                <input type="submit" value="show">
+            </form>
+			 <% } %>
+            </div>
+  		</div>
+	</div>
 	
+	 <!-- create new folder modal -->
+	<div class="modal fade" id="createNewFolder" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  		<div class="modal-dialog modal-dialog-centered" role="document">
+    		<div class="modal-content">
+      			
+                  <div class="modal-header">
+        			<h5 class="modal-title" id="createNewFolderTitle">새 폴더</h5>
+        			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          				<span aria-hidden="true">&times;</span>
+        			</button>
+      			</div>
+
+      			<div class="modal-body">
+					<form id="create-new-folder">
+						<div class="form-group">
+							<input type="text" name="foldername" class="form-control" placeholder="제목없는 폴더">
+							<input type="hidden" name="path" value="<%=path%>">
+        				</div>
+        			</form>
+				</div>
+				
+				<div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">취소</button>
+                    <input type="button" class="btn btn-primary" value="생성" onclick="createNewFolderSubmit()" />
+                </div>
+			</div>
+		</div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">취소</button>
+        <input type="button" class="btn btn-primary" value="생성" onclick="createNewFolderSubmit()" />
+    </div>
+
+    <!-- End Create new folder modal -->
+
+    <!-- create new group folder modal -->
+    <div class="modal fade" id="createNewGroupFolder" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createNewGroupFolderTitle">새 그룹 폴더</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="create-new-group-folder">
+                        <div class="form-group">
+                            <label for="foldername" class="col-form-label">폴더 이름</label>
+                            <input type="text" name="foldername" class="form-control" placeholder="제목없는 폴더">
+
+                            <label for="foldername" class="col-form-label">사용자</label>
+                            <input type="text" class="form-control" name="userlist" placeholder="공유할 사용자 ID 입력..">
+                            <small id="help" class="form-text text-muted">여러명 입력시 ,(쉼표)로 구분해 주세요.</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">취소</button>
+                    <input type="button" class="btn btn-primary" value="생성" onclick="createNewGroupFolderSubmit()" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Create new group folder modal -->
+
+
+    <!-- upload file modal -->
+    <div class="modal fade" id="uploadFile" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createNewGroupFolderTitle">파일 업로드</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+				<form enctype="multipart/form-data" method="post"
+                                action="/dropbox/drive/drive_temp/upload_file">
+                	<div class="modal-body">
+                    	<div class="input-group mb-3">
+                        	<div class="input-group-prepend">
+                            	<span class="input-group-text" id="inputGroupFileAddon01">Upload</span>
+                        	</div>
+                        	<div class="custom-file">
+									<input type="file" class="custom-file-input" id="inputGroupFile01" name="upload_file"
+                                    				aria-describedby="inputGroupFileAddon01">
+                                	<input type="hidden" name="path" value="<%=path%>">
+                                	<label class="custom-file-label" for="inputGroupFile01">Choose file</label>
+                                	<input type="submit" id="uploadFile" class="btn btn-primary" value="업로드" />
+							</div>
+						</div>
+					</div>
+
+					<div class="modal-footer">
+                    	<button type="button" class="btn btn-secondary" data-dismiss="modal">취소</button>
+                    	<input type="submit" class="btn btn-primary" value="업로드"/>
+                	</div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- End upload file modal -->
+
+
+
+
+    <script>
+        String.prototype.trim = function () {
+            return this.replace(/^\s+|\s+$/g, "");
+        }
+
+
+        $("#menu-toggle").click(function (e) {
+            e.preventDefault();
+            $("#wrapper").toggleClass("toggled");
+        });
+
+        $(".custom-file-input").on("change", function () {
+            var fileName = $(this).val().split("\\").pop();
+            $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+        });
+
+        function toggle_visibility(id) {
+            var e = document.getElementById(id);
+            var box1 = document.getElementById("file_div_id");
+            if (e.style.display == 'block') {
+                box1.style.width = "100%";
+                e.style.display = 'none';
+            } else {
+                box1.style.width = "70%";
+                e.style.display = 'block';
+            }
+        }
+
+        function createNewFolderSubmit() {
+            var params = jQuery("#create-new-folder").serialize();
+            console.log("params  : " + params)
+            jQuery.ajax({
+                url: '/dropbox/drive/drive_temp/createfolder',
+                type: 'POST',
+                data: params,
+                success: function (result) {
+                    $('#createNewFolder').modal('hide')
+                }
+            });
+        }
+
+        function createNewGroupFolderSubmit() {
+            var params = jQuery("#create-new-group-folder").serialize();
+            console.log(params);
+            jQuery.ajax({
+                url: '/dropbox/drive/drive_temp/creategroup',
+                type: 'POST',
+                data: params,
+                success: function (result) {
+                    $('#createNewGroupFolder').modal('hide')
+                }
+            });
+        }
+        // <form enctype="multipart/form-data">
+
+        function uploadFileSubmit() {
+            $("#uploadFile").click(function () {
+                var formData = new FormData();
+                formData.append("upload_file", $("input[name=upload_file]")[0].files[0]);
+                console.log(formData);
+                // $.ajax({ 
+                // 	url: '/dropbox/drive/drive_temp/upload_file',
+                // 	data: formData,
+                // 	processData: false,
+                // 	contentType: false,
+                // 	type: 'POST',
+                // 	success: function(data){
+                // 		alert("EE"); 
+                // 	} 
+                // }); 
+            });
+
+            // 			            function uploadFile(){
+            //                 var form = $('#FILE_FORM')[0];
+            //                 var formData = new FormData(form);
+            //                 formData.append("fileObj", $("#FILE_TAG")[0].files[0]);
+            //                 formData.append("fileObj2", $("#FILE_TAG2")[0].files[0]);
+
+            //             }
+        }
+    </script>
+
+
+
 </body>
-	
+
 </html>

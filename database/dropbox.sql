@@ -24,11 +24,11 @@ DROP TABLE IF EXISTS `group_user_relation`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `group_user_relation` (
   `group_index` int(11) NOT NULL,
-  `group_member_index` int(11) NOT NULL,
+  `group_member_user_id` varchar(200) NOT NULL,
   KEY `group_index_idx` (`group_index`),
-  KEY `user_index_idx` (`group_member_index`),
+  KEY `user_index_idx` (`group_member_user_id`),
   CONSTRAINT `group_index` FOREIGN KEY (`group_index`) REFERENCES `groups` (`group_index`),
-  CONSTRAINT `user_index` FOREIGN KEY (`group_member_index`) REFERENCES `users` (`user_index`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `member_id` FOREIGN KEY (`group_member_user_id`) REFERENCES `users` (`user_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -52,9 +52,11 @@ CREATE TABLE `groups` (
   `group_index` int(11) NOT NULL AUTO_INCREMENT,
   `group_name` varchar(400) NOT NULL,
   `group_member_total_num` int(11) DEFAULT NULL,
-  `group_access_range` int(11) DEFAULT NULL,
+  `group_leader_user_id` varchar(200) NOT NULL,
   PRIMARY KEY (`group_index`),
-  UNIQUE KEY `groups_index_UNIQUE` (`group_index`)
+  UNIQUE KEY `groups_index_UNIQUE` (`group_index`),
+  KEY `leader_idx` (`group_leader_user_id`),
+  CONSTRAINT `leader` FOREIGN KEY (`group_leader_user_id`) REFERENCES `users` (`user_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -100,14 +102,15 @@ DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `user_index` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` varchar(200) NOT NULL,
-  `user_pw` varchar(200) NOT NULL,
+  `user_pw` varchar(400) NOT NULL,
   `user_email` varchar(200) DEFAULT NULL,
-  `user_phone` int(11) DEFAULT NULL,
-  `user_name` varchar(45) DEFAULT NULL,
+  `user_phone` int(20) DEFAULT NULL,
+  `user_name` varchar(100) DEFAULT NULL,
+  `salt` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`user_index`),
   UNIQUE KEY `users_index_UNIQUE` (`user_index`),
   UNIQUE KEY `users_id_UNIQUE` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -116,7 +119,6 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'1081782003','1081782003',NULL,NULL,NULL),(3,'yhye97','pwpw','yhye1997@gmail.com',NULL,'hyewon'),(4,'dd','bb','yhye1997@gmail.com',NULL,'xx'),(5,'fdsfds','wwww','yhye1997@gmail.com',NULL,'fds');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -129,4 +131,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-05-11 13:59:44
+-- Dump completed on 2019-06-06 18:09:21
