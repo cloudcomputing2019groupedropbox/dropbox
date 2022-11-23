@@ -39,7 +39,7 @@
     "request": "^2.88.0",
     "require": "^2.4.20",
     "serve-favicon": "^2.5.0",
-    "socket.io": "^2.2.0",
+    "socket.io": "^2.5.0",
     "uuid": "^3.3.2"
   }
 }
